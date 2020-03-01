@@ -53,25 +53,89 @@ void init_blocks( int n, block_t **blocks)
     {
          blocks[i] = (block_t *)malloc(numblocks * sizeof(block_t));
     }
-    for (int i = 0; i <  numblocks; i++)
+    for (int i = 0; i < numblocks; i++)
     {
         for (int j = 0; j < numblocks; j++)
         {
            //set bounds
            // set upper and lower bounds for x coordinates
-		   blocks[i][j].bx_lower = cutoff * (i)
-		   blocks[i][j].bx_upper = cutoff * (i + 1)
+    		   blocks[i][j].bx_lower = cutoff * (i);
+    		   blocks[i][j].bx_upper = cutoff * (i + 1);
 
-		   // set upper and lower bounds for y coordinates
-		   blocks[i][j].by_lower = cutoff * (j)
-		   blocks[i][j].by_upper = cutoff * (j + 1)
+    		   // set upper and lower bounds for y coordinates
+    		   blocks[i][j].by_lower = cutoff * (j);
+    		   blocks[i][j].by_upper = cutoff * (j + 1);
 
-           //set neighbor x,y
+           /*
+           if (i == 0 || i == (numblocks-1) || j == 0 || j == numblocks-1)
+           {
+              if ((i == 0 && j == 0) || (i == 0 && j == (numblocks-1)) || (i == (numblocks-1) && j == 0) || (i == (numblocks-1) && j == (numblocks-1)))
+              {
+                  //Corners
+                  blocks[i][j].n_blocks = (block_t *)malloc(3 * sizeof(block_t));
+              }
+              else
+              {
+                  //Sides
+                  blocks[i][j].n_blocks = (block_t *)malloc(5 * sizeof(block_t));
+              }
+           }
+           else
+           {
+              //Inner
+              blocks[i][j].n_blocks = (block_t *)malloc(8 * sizeof(block_t));
+           }
+           //set neighbor blocks
+           int k = 0;
+           if (i-1 >= 0)
+           {
+              blocks[i][j].n_blocks[k] = blocks[i-1][j];
+              k++;
+              if (j-1 >= 0)
+              {
+                  blocks[i][j].n_blocks[k] = blocks[i-1][j-1];
+                  k++;
+              }
+              if (j+1 < numblocks)
+              {
+                  blocks[i][j].n_blocks[k] = blocks[i-1][j+1];
+                  k++;
+              }
+           }
+           if (i+1 < numblocks)
+           {
+              blocks[i][j].n_blocks[k] = blocks[i+1][j];
+              k++;
+              if (j-1 >= 0)
+              {
+                  blocks[i][j].n_blocks[k] = blocks[i+1][j-1];
+                  k++;
+              }
+              if (j+1 < numblocks)
+              {
+                  blocks[i][j].n_blocks[k] = blocks[i+1][j+1];
+                  k++;
+              }
+           }
+           if (j-1 >= 0)
+           {
+              blocks[i][j].n_blocks[k] = blocks[i][j-1];
+              k++;
+           }
+           if (j+1 < numblocks)
+           {
+              blocks[i][j].n_blocks[k] = blocks[i][j+1];
+              k++;
+           }
+           */
 
            //set inital particle lists
            //if within bounds, add to list
+
         }
     }
+    //No Segmentation Fault
+    printf("blocks[0][0].by_upper = %f \n", blocks[0][0].by_upper);
 }
 
 void update_blocks ( block_t **blocks )

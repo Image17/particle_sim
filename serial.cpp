@@ -36,6 +36,8 @@ int main( int argc, char **argv )
     set_size( n );
     init_particles( n, particles );
     init_blocks( n, blocks );
+    //Segmentation Fault
+    //printf("blocks[0][0].by_upper = %f \n", blocks[0][0].by_upper);
 
     //
     //  simulate a number of time steps

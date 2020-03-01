@@ -26,14 +26,12 @@ typedef struct
 //
 // block data structure
 //
-typedef struct
+typedef struct _block_t
 {
   // particle pointer list
   particle_t *particles;
   // list of neighboring blocks
-  // n_blocks[0][0] = 1  x
-  // n_blocks[0][1] = 2  y
-  int **n_blocks;
+  struct _block_t* n_blocks;
   // double x bounds
   double bx_lower;
   double bx_upper;

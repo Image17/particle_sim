@@ -43,16 +43,17 @@ double read_timer( )
 void set_size( int n )
 {
     size = sqrt( density * n );
+    numblocks = (int)ceil(size/cutoff);
+}
+
+int get_numblocks()
+{
+  return numblocks;
 }
 
 void init_blocks( int n, block_t **blocks)
 {
-    numblocks = (int)ceil(size/cutoff);
-    blocks = (block_t**) malloc( numblocks * sizeof(block_t*) );
-    for (int i = 0; i < numblocks; i++)
-    {
-         blocks[i] = (block_t *)malloc(numblocks * sizeof(block_t));
-    }
+
     for (int i = 0; i < numblocks; i++)
     {
         for (int j = 0; j < numblocks; j++)
@@ -66,7 +67,6 @@ void init_blocks( int n, block_t **blocks)
     		   blocks[i][j].by_lower = cutoff * (j);
     		   blocks[i][j].by_upper = cutoff * (j + 1);
 
-           /*
            if (i == 0 || i == (numblocks-1) || j == 0 || j == numblocks-1)
            {
               if ((i == 0 && j == 0) || (i == 0 && j == (numblocks-1)) || (i == (numblocks-1) && j == 0) || (i == (numblocks-1) && j == (numblocks-1)))
@@ -127,7 +127,6 @@ void init_blocks( int n, block_t **blocks)
               blocks[i][j].n_blocks[k] = blocks[i][j+1];
               k++;
            }
-           */
 
            //set inital particle lists
            //if within bounds, add to list
@@ -135,7 +134,7 @@ void init_blocks( int n, block_t **blocks)
         }
     }
     //No Segmentation Fault
-    printf("blocks[0][0].by_upper = %f \n", blocks[0][0].by_upper);
+    //printf("blocks[0][0].by_upper = %f \n", blocks[0][0].by_upper);
 }
 
 void update_blocks ( block_t **blocks )

@@ -32,12 +32,18 @@ int main( int argc, char **argv )
     FILE *fsum = sumname ? fopen ( sumname, "a" ) : NULL;
 
     particle_t *particles = (particle_t*) malloc( n * sizeof(particle_t) );
-    block_t **blocks;
+
     set_size( n );
+    int numblocks = get_numblocks();
+    block_t **blocks = (block_t**) malloc( numblocks * sizeof(block_t*) );
+    for (int i = 0; i < numblocks; i++)
+    {
+         blocks[i] = (block_t *)malloc(numblocks * sizeof(block_t));
+    }
     init_particles( n, particles );
     init_blocks( n, blocks );
     //Segmentation Fault
-    //printf("blocks[0][0].by_upper = %f \n", blocks[0][0].by_upper);
+    printf("blocks[0][0].n_blocks[1].by_upper = %f \n", blocks[2][2].n_blocks[2].by_upper);
 
     //
     //  simulate a number of time steps

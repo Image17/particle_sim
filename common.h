@@ -50,6 +50,7 @@ double read_timer( );
 //
 void set_size( int n );
 void init_particles( int n, particle_t *p );
+int get_numblocks();
 void init_blocks( int n, block_t **blocks );
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
 void move( particle_t &p );

@@ -1,5 +1,6 @@
 #ifndef __CS267_COMMON_H__
 #define __CS267_COMMON_H__
+#include <utility>
 
 inline int min( int a, int b ) { return a < b ? a : b; }
 inline int max( int a, int b ) { return a > b ? a : b; }
@@ -51,9 +52,11 @@ double read_timer( );
 void set_size( int n );
 void init_particles( int n, particle_t *p );
 int get_numblocks();
-void init_blocks( int n, block_t **blocks );
+void init_blocks( int n, block_t **blocks, particle_t *p);
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
 void move( particle_t &p );
+void load_block(block_t block, particle_t *p, int n);
+std::pair<int, int> determine_block(double x, double y);
 
 
 //

@@ -7,6 +7,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include "common.h"
+#include <utility>
 
 double size;
 int numblocks;
@@ -51,7 +52,7 @@ int get_numblocks()
   return numblocks;
 }
 
-void init_blocks( int n, block_t **blocks)
+void init_blocks( int n, block_t **blocks, particle_t *p)
 {
 
     for (int i = 0; i < numblocks; i++)
@@ -130,6 +131,7 @@ void init_blocks( int n, block_t **blocks)
 
            //set inital particle lists
            //if within bounds, add to list
+			load_block(blocks[i][j], p, n);
 
         }
     }
@@ -179,6 +181,32 @@ void init_particles( int n, particle_t *p )
         p[i].vy = drand48()*2-1;
     }
     free( shuffle );
+}
+
+// store particles in given block by upper and lower x,y bounds
+void load_block(block_t block, particle_t *p, int n)
+{
+	
+	int j = 0;
+	 // for each particle
+	 //TODO find better inital allocation size other than n, n / numblocks is average but may not be big enough
+	 block.particles = (particle_t *) malloc (n * sizeof(particle_t));
+	for (int i = 0; i < n; i++) {
+		//std::pair<int, int> coords = determine_block(p[i].x, p[i].y);
+		
+		if (p[i].x > block.bx_lower && p[i].x < block.bx_upper && p[i].y > block.by_lower && p[i].y < block.by_upper)
+		{
+			block.particles[j] = p[i];
+			j++;
+		}
+	}
+}
+
+std::pair<int, int> determine_block(double x, double y)
+{
+	int i = (int)floor(x / cutoff);
+	int j = (int)floor(y  / cutoff);
+	return std::make_pair(i, j);
 }
 
 //

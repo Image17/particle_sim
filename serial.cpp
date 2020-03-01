@@ -41,9 +41,11 @@ int main( int argc, char **argv )
          blocks[i] = (block_t *)malloc(numblocks * sizeof(block_t));
     }
     init_particles( n, particles );
-    init_blocks( n, blocks );
+    init_blocks( n, blocks, particles);
     //Segmentation Fault
     printf("blocks[0][0].n_blocks[1].by_upper = %f \n", blocks[2][2].n_blocks[2].by_upper);
+	
+	//printf("blocks[0][0].n_blocks[1].particles[0] = %f \n", blocks[2][2].particles[0]);
 
     //
     //  simulate a number of time steps

@@ -22,6 +22,8 @@ typedef struct
   double vy;
   double ax;
   double ay;
+  int bx;
+  int by;
 } particle_t;
 
 //
@@ -33,12 +35,20 @@ typedef struct _block_t
   particle_t *particles;
   // list of neighboring blocks
   struct _block_t* n_blocks;
+
+  //particle count
+  int p_count;
+  //index tracker
+  int i_track;
+
+
   // double x bounds
   double bx_lower;
   double bx_upper;
   // double y bounds
   double by_lower;
   double by_upper;
+
 } block_t;
 
 //
@@ -50,12 +60,12 @@ double read_timer( );
 //  simulation routines
 //
 void set_size( int n );
-void init_particles( int n, particle_t *p );
+void init_particles( int n, particle_t *p, block_t **blocks );
 int get_numblocks();
+void update_blocks ( block_t **blocks, particle_t *p, int n );
 void init_blocks( int n, block_t **blocks, particle_t *p);
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
-void move( particle_t &p );
-void load_block(block_t block, particle_t *p, int n);
+void move( particle_t &p, block_t **blocks, int n  );
 std::pair<int, int> determine_block(double x, double y);
 
 

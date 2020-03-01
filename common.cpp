@@ -59,6 +59,7 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
     {
         for (int j = 0; j < numblocks; j++)
         {
+
            //set bounds
            // set upper and lower bounds for x coordinates
     		   blocks[i][j].bx_lower = cutoff * (i);
@@ -67,6 +68,7 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
     		   // set upper and lower bounds for y coordinates
     		   blocks[i][j].by_lower = cutoff * (j);
     		   blocks[i][j].by_upper = cutoff * (j + 1);
+
 
            if (i == 0 || i == (numblocks-1) || j == 0 || j == numblocks-1)
            {
@@ -131,23 +133,40 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
 
            //set inital particle lists
            //if within bounds, add to list
-			load_block(blocks[i][j], p, n);
-
+           blocks[i][j].p_count = 0;
+			     //load_block(blocks[i][j], p, n);
         }
     }
-    //No Segmentation Fault
-    //printf("blocks[0][0].by_upper = %f \n", blocks[0][0].by_upper);
 }
 
-void update_blocks ( block_t **blocks )
+void update_blocks ( block_t **blocks, particle_t *p, int n )
 {
-    //after move update block particle lists
+    //after move and init update block particle lists
+    //reset all block p lists with new arrays
+
+    for (int i = 0; i < numblocks; i++)
+    {
+        for (int j = 0; j < numblocks; j++)
+        {
+            blocks[i][j].i_track = 0;
+            blocks[i][j].particles = (particle_t *) malloc (blocks[i][j].p_count * sizeof(particle_t));
+        }
+    }
+
+    //Loop through particles and assign them to their n_blocks
+
+    for (int i = 0; i < n; i++)
+    {
+        int k = blocks[p[i].bx][p[i].by].i_track;
+        blocks[p[i].bx][p[i].by].particles[k] = p[i];
+        blocks[p[i].bx][p[i].by].i_track++;
+    }
 }
 
 //
 //  Initialize the particle positions and velocities
 //
-void init_particles( int n, particle_t *p )
+void init_particles( int n, particle_t *p, block_t **blocks )
 {
     srand48( time( NULL ) );
 
@@ -174,33 +193,25 @@ void init_particles( int n, particle_t *p )
         p[i].x = size*(1.+(k%sx))/(1+sx);
         p[i].y = size*(1.+(k/sx))/(1+sy);
 
+        std::pair<int, int> blockXY = determine_block(p[i].x, p[i].y);
+        blocks[blockXY.first][blockXY.second].p_count++;
+
+
+        p[i].bx = blockXY.first;
+        p[i].by = blockXY.second;
         //
         //  assign random velocities within a bound
         //
         p[i].vx = drand48()*2-1;
         p[i].vy = drand48()*2-1;
+        //printf(" %d ", i);
     }
+
+    update_blocks(blocks, p, n);
+
     free( shuffle );
 }
 
-// store particles in given block by upper and lower x,y bounds
-void load_block(block_t block, particle_t *p, int n)
-{
-	
-	int j = 0;
-	 // for each particle
-	 //TODO find better inital allocation size other than n, n / numblocks is average but may not be big enough
-	 block.particles = (particle_t *) malloc (n * sizeof(particle_t));
-	for (int i = 0; i < n; i++) {
-		//std::pair<int, int> coords = determine_block(p[i].x, p[i].y);
-		
-		if (p[i].x > block.bx_lower && p[i].x < block.bx_upper && p[i].y > block.by_lower && p[i].y < block.by_upper)
-		{
-			block.particles[j] = p[i];
-			j++;
-		}
-	}
-}
 
 std::pair<int, int> determine_block(double x, double y)
 {
@@ -244,12 +255,15 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
 //
 //  integrate the ODE
 //
-void move( particle_t &p )
+void move( particle_t &p, block_t **blocks, int n )
 {
     //
     //  slightly simplified Velocity Verlet integration
     //  conserves energy better than explicit Euler method
     //
+    int oldBX = p.bx;
+    int oldBY = p.by;
+
     p.vx += p.ax * dt;
     p.vy += p.ay * dt;
     p.x  += p.vx * dt;
@@ -267,6 +281,14 @@ void move( particle_t &p )
     {
         p.y  = p.y < 0 ? -p.y : 2*size-p.y;
         p.vy = -p.vy;
+    }
+    std::pair<int, int> blockXY = determine_block(p.x, p.y);
+    if (oldBX != blockXY.first && oldBY != blockXY.second)
+    {
+        if (blocks[oldBX][oldBY].p_count > 0)
+          blocks[oldBX][oldBY].p_count--;
+        if (blocks[blockXY.first][blockXY.second].p_count < n)
+          blocks[blockXY.first][blockXY.second].p_count++;
     }
 }
 

@@ -40,12 +40,8 @@ int main( int argc, char **argv )
     {
          blocks[i] = (block_t *)malloc(numblocks * sizeof(block_t));
     }
-    init_particles( n, particles );
     init_blocks( n, blocks, particles);
-    //Segmentation Fault
-    printf("blocks[0][0].n_blocks[1].by_upper = %f \n", blocks[2][2].n_blocks[2].by_upper);
-	
-	//printf("blocks[0][0].n_blocks[1].particles[0] = %f \n", blocks[2][2].particles[0]);
+    init_particles( n, particles, blocks);
 
     //
     //  simulate a number of time steps
@@ -74,7 +70,8 @@ int main( int argc, char **argv )
         //  move particles
         //
         for( int i = 0; i < n; i++ )
-            move( particles[i] );
+            move( particles[i], blocks, n );
+        update_blocks(blocks, particles, n );
 
         if( find_option( argc, argv, "-no" ) == -1 )
         {

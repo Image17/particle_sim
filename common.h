@@ -13,7 +13,7 @@ const int SAVEFREQ = 10;
 //
 // particle data structure
 //
-typedef struct 
+typedef struct
 {
   double x;
   double y;
@@ -22,6 +22,23 @@ typedef struct
   double ax;
   double ay;
 } particle_t;
+
+//
+// block data structure
+//
+typedef struct
+{
+  // particle pointer list
+  particle_t *particles;
+  // list of neighboring blocks
+  // n_blocks[0][0] = 1  x
+  // n_blocks[0][1] = 2  y
+  int **n_blocks;
+  // double x bounds
+  double bx;
+  // double y bounds
+  double by;
+} block_t;
 
 //
 //  timing routines
@@ -33,6 +50,7 @@ double read_timer( );
 //
 void set_size( int n );
 void init_particles( int n, particle_t *p );
+void init_blocks( int n, block_t **blocks );
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
 void move( particle_t &p );
 

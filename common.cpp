@@ -9,6 +9,7 @@
 #include "common.h"
 
 double size;
+int numblocks;
 
 //
 //  tuned constants
@@ -44,21 +45,51 @@ void set_size( int n )
     size = sqrt( density * n );
 }
 
+void init_blocks( int n, block_t **blocks)
+{
+    numblocks = (int)ceil(size/cutoff);
+    blocks = (block_t**) malloc( numblocks * sizeof(block_t*) );
+    for (int i = 0; i < numblocks; i++)
+    {
+         blocks[i] = (block_t *)malloc(numblocks * sizeof(block_t));
+    }
+    for (int i = 0; i <  numblocks; i++)
+    {
+        for (int j = 0; j < numblocks; j++)
+        {
+           //set bounds
+           //blocks[i][j].bx = ??;
+           //blocks[i][j].by = ??;
+
+           //set neighbor x,y
+
+           //set inital particle lists
+           //if within bounds, add to list
+        }
+    }
+}
+
+void update_blocks ( block_t **blocks )
+{
+    //after move update block particle lists
+}
+
 //
 //  Initialize the particle positions and velocities
 //
 void init_particles( int n, particle_t *p )
 {
     srand48( time( NULL ) );
-        
+
     int sx = (int)ceil(sqrt((double)n));
+
     int sy = (n+sx-1)/sx;
-    
+
     int *shuffle = (int*)malloc( n * sizeof(int) );
     for( int i = 0; i < n; i++ )
         shuffle[i] = i;
-    
-    for( int i = 0; i < n; i++ ) 
+
+    for( int i = 0; i < n; i++ )
     {
         //
         //  make sure particles are not spatially sorted
@@ -66,7 +97,7 @@ void init_particles( int n, particle_t *p )
         int j = lrand48()%(n-i);
         int k = shuffle[j];
         shuffle[j] = shuffle[n-i-1];
-        
+
         //
         //  distribute particles evenly to ensure proper spacing
         //
@@ -100,12 +131,12 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
            (*davg) += sqrt(r2)/cutoff;
            (*navg) ++;
         }
-		
+
     r2 = fmax( r2, min_r*min_r );
     double r = sqrt( r2 );
- 
-    
-	
+
+
+
     //
     //  very simple short-range repulsive force
     //

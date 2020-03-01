@@ -58,8 +58,13 @@ void init_blocks( int n, block_t **blocks)
         for (int j = 0; j < numblocks; j++)
         {
            //set bounds
-           //blocks[i][j].bx = ??;
-           //blocks[i][j].by = ??;
+           // set upper and lower bounds for x coordinates
+		   blocks[i][j].bx_lower = cutoff * (i)
+		   blocks[i][j].bx_upper = cutoff * (i + 1)
+
+		   // set upper and lower bounds for y coordinates
+		   blocks[i][j].by_lower = cutoff * (j)
+		   blocks[i][j].by_upper = cutoff * (j + 1)
 
            //set neighbor x,y
 

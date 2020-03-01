@@ -35,9 +35,11 @@ typedef struct
   // n_blocks[0][1] = 2  y
   int **n_blocks;
   // double x bounds
-  double bx;
+  double bx_lower;
+  double bx_upper;
   // double y bounds
-  double by;
+  double by_lower;
+  double by_upper;
 } block_t;
 
 //

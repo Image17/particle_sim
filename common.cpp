@@ -149,7 +149,7 @@ void update_blocks ( block_t **blocks, particle_t *p, int n )
         for (int j = 0; j < numblocks; j++)
         {
             blocks[i][j].i_track = 0;
-            blocks[i][j].particles = (particle_t *) malloc (blocks[i][j].p_count * sizeof(particle_t));
+            blocks[i][j].iP = (int *) malloc (blocks[i][j].p_count * sizeof(int));
         }
     }
 
@@ -158,7 +158,7 @@ void update_blocks ( block_t **blocks, particle_t *p, int n )
     for (int i = 0; i < n; i++)
     {
         int k = blocks[p[i].bx][p[i].by].i_track;
-        blocks[p[i].bx][p[i].by].particles[k] = p[i];
+        blocks[p[i].bx][p[i].by].iP[k] = i;
         blocks[p[i].bx][p[i].by].i_track++;
     }
 }

@@ -59,11 +59,25 @@ int main( int argc, char **argv )
         //
         //  compute forces
         //
-        for( int i = 0; i < n; i++ )
+        for( int i = 0; i < numblocks; i++ )
         {
-            particles[i].ax = particles[i].ay = 0;
-            for (int j = 0; j < n; j++ )
-				        apply_force( particles[i], particles[j],&dmin,&davg,&navg);
+
+            for (int j = 0; j < numblocks; j++ )
+            {
+              for (int z = 0; z < sizeof(blocks[i][j].iP); z++)
+              {
+                particles[blocks[i][j].iP[z]].ax = particles[blocks[i][j].iP[z]].ay = 0;
+                for (int k = 0; k < sizeof(blocks[i][j].n_blocks); k++)
+                {
+                  for (int y = 0; y < sizeof(blocks[i][j].n_blocks[k].iP); y++)
+                  {
+                    apply_force( particles[blocks[i][j].iP[z]], particles[blocks[i][j].n_blocks[k].iP[y]],&dmin,&davg,&navg);
+                  }
+
+                }
+              }
+
+            }
         }
 
         //

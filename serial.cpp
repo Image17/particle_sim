@@ -68,7 +68,7 @@ int main( int argc, char **argv )
               for (int z = 0; z < blocks[i][j].p_count; z++)
               {
                 particles[blocks[i][j].iP[z]].ax = particles[blocks[i][j].iP[z]].ay = 0;
-                for (int k = 0; k < (sizeof(blocks[i][j].n_blocks)/sizeof(block_t)) ; k++)
+                for (int k = 0; k < (sizeof(blocks[i][j].n_blocks)/sizeof(block_t)); k++)
                 {
                   for (int y = 0; y < sizeof(blocks[i][j].n_blocks[k].p_count); y++)
                   {

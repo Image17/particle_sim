@@ -283,8 +283,10 @@ void move( particle_t &p, block_t **blocks, int n )
         p.vy = -p.vy;
     }
     std::pair<int, int> blockXY = determine_block(p.x, p.y);
-    if (oldBX != blockXY.first && oldBY != blockXY.second)
+    if (oldBX != blockXY.first || oldBY != blockXY.second)
     {
+        p.by = blockXY.second;
+        p.bx = blockXY.first;
         if (blocks[oldBX][oldBY].p_count > 0)
           blocks[oldBX][oldBY].p_count--;
         if (blocks[blockXY.first][blockXY.second].p_count < n)

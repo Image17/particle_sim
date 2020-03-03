@@ -3,7 +3,8 @@
 #include <assert.h>
 #include <math.h>
 #include "common.h"
-
+#include <iostream>
+using namespace std;
 //
 //  benchmarking program
 //
@@ -50,9 +51,9 @@ int main( int argc, char **argv )
 
     for( int step = 0; step < NSTEPS; step++ )
     {
-	navg = 0;
+    navg = 0;
         davg = 0.0;
-	dmin = 1.0;
+    dmin = 1.0;
 
 
 
@@ -67,14 +68,24 @@ int main( int argc, char **argv )
             {
               for (int z = 0; z < blocks[i][j].p_count; z++)
               {
-				  //int ksize = sizeof(blocks[i][j].n_blocks);
-				  //printf("k should go from 0 to %d\n",ksize);
-                particles[blocks[i][j].iP[z]].ax = particles[blocks[i][j].iP[z]].ay = 0;
+                  int ksize = sizeof(blocks[i][j].n_blocks);
+                  //printf("k should go from 0 to %d\n",ksize);
+                //particles[blocks[i][j].iP[z]].ax = particles[blocks[i][j].iP[z]].ay = 0;
                 for (int k = 0; k < sizeof(blocks[i][j].n_blocks); k++)
                 {
-					//printf("for k = %d\n",k);
+                    //printf("for k = %d\n",k);
+                      int ysize =blocks[i][j].n_blocks[k].p_count;
+                      //printf("y should go from 0 to %d\n",ysize);
+                      //cout << "y should go from 0 to" << ysize << endl; 
                   for (int y = 0; y < blocks[i][j].n_blocks[k].p_count; y++)
                   {
+
+                      //printf("for y = %d\n",y);
+                      //cout << "for y = " << y << endl;
+                      //cout << "applying force on z, y " << z << y << endl; 
+                      //particle_t myp = particles[blocks[i][j].iP[z]];
+                      //particle_t myn = particles[blocks[i][j].n_blocks[k].iP[y]];
+                        //cout << "after creating locals..." << endl;
                     apply_force( particles[blocks[i][j].iP[z]], particles[blocks[i][j].n_blocks[k].iP[y]],&dmin,&davg,&navg);
                   }
                 }

@@ -8,6 +8,9 @@
 #include <sys/time.h>
 #include "common.h"
 #include <utility>
+#include <iostream>
+
+using namespace std;
 
 double size;
 int numblocks;
@@ -62,12 +65,12 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
 
            //set bounds
            // set upper and lower bounds for x coordinates
-    		   blocks[i][j].bx_lower = cutoff * (i);
-    		   blocks[i][j].bx_upper = cutoff * (i + 1);
+           blocks[i][j].bx_lower = cutoff * (i);
+           blocks[i][j].bx_upper = cutoff * (i + 1);
 
-    		   // set upper and lower bounds for y coordinates
-    		   blocks[i][j].by_lower = cutoff * (j);
-    		   blocks[i][j].by_upper = cutoff * (j + 1);
+           // set upper and lower bounds for y coordinates
+           blocks[i][j].by_lower = cutoff * (j);
+           blocks[i][j].by_upper = cutoff * (j + 1);
 
 
            if (i == 0 || i == (numblocks-1) || j == 0 || j == numblocks-1)
@@ -134,7 +137,7 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
            //set inital particle lists
            //if within bounds, add to list
            blocks[i][j].p_count = 0;
-			     //load_block(blocks[i][j], p, n);
+           //load_block(blocks[i][j], p, n);
         }
     }
 }
@@ -149,7 +152,8 @@ void update_blocks ( block_t **blocks, particle_t *p, int n )
         for (int j = 0; j < numblocks; j++)
         {
             blocks[i][j].i_track = 0;
-            blocks[i][j].iP = (int *) malloc (blocks[i][j].p_count * sizeof(int));
+            //blocks[i][j].iP = (int *) malloc (blocks[i][j].p_count * sizeof(int));
+            //blocks[i][j].iP = new int[n];
         }
     }
 
@@ -157,6 +161,7 @@ void update_blocks ( block_t **blocks, particle_t *p, int n )
 
     for (int i = 0; i < n; i++)
     {
+        //cout << "adding particle at " << i << "to our x y " << p[i].bx << p[i].by << endl;
         int k = blocks[p[i].bx][p[i].by].i_track;
         blocks[p[i].bx][p[i].by].iP[k] = i;
         blocks[p[i].bx][p[i].by].i_track++;
@@ -180,6 +185,7 @@ void init_particles( int n, particle_t *p, block_t **blocks )
 
     for( int i = 0; i < n; i++ )
     {
+    //printf("for i = %d\n",i);
         //
         //  make sure particles are not spatially sorted
         //
@@ -192,13 +198,20 @@ void init_particles( int n, particle_t *p, block_t **blocks )
         //
         p[i].x = size*(1.+(k%sx))/(1+sx);
         p[i].y = size*(1.+(k/sx))/(1+sy);
-
+    
         std::pair<int, int> blockXY = determine_block(p[i].x, p[i].y);
+    //printf("for our coords %d, %d we are going to assign to block %d, %d\n",p[i].x,p[i].y,blockXY.first,blockXY.second);
+    //printf("wtf %d\n", blockXY.first);
         blocks[blockXY.first][blockXY.second].p_count++;
+    //cout << "pair x: " << blockXY.first << endl;
+    //cout << "pair y: " << blockXY.second << endl;
+    //cout << "our p count " << blocks[blockXY.first][blockXY.second].p_count << endl;
 
 
         p[i].bx = blockXY.first;
         p[i].by = blockXY.second;
+    //p[i].bx = p[i].x;
+    //p[i].by = p[i].y;
         //
         //  assign random velocities within a bound
         //
@@ -215,9 +228,11 @@ void init_particles( int n, particle_t *p, block_t **blocks )
 
 std::pair<int, int> determine_block(double x, double y)
 {
-	int i = (int)floor(x / cutoff);
-	int j = (int)floor(y  / cutoff);
-	return std::make_pair(i, j);
+  int i = (int)floor(x / cutoff);
+  int j = (int)floor(y  / cutoff);
+  std::pair<int, int> blockXY = std::make_pair(i, j);
+  //printf("determine coords %d, %d we are translating into %d, %d and then into pair %d, %d\n",x,y,i,j,blockXY.first,blockXY.second);
+  return blockXY;
 }
 
 //
@@ -226,15 +241,20 @@ std::pair<int, int> determine_block(double x, double y)
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg)
 {
 
+    //cout << "in apply force...." << endl;
     double dx = neighbor.x - particle.x;
     double dy = neighbor.y - particle.y;
     double r2 = dx * dx + dy * dy;
-    if( r2 > cutoff*cutoff )
-        return;
-	if (r2 != 0)
+  //printf("calculations: %d * %d = %d\n",dx,dy,r2);
+    if( r2 > cutoff*cutoff ) {
+        //printf("too far, skipping");
+    return;
+  }
+  if (r2 != 0)
         {
-	   if (r2/(cutoff*cutoff) < *dmin * (*dmin))
-	      *dmin = sqrt(r2)/cutoff;
+     if (r2/(cutoff*cutoff) < *dmin * (*dmin))
+        //cout << "changing dmin" << endl;
+        *dmin = sqrt(r2)/cutoff;
            (*davg) += sqrt(r2)/cutoff;
            (*navg) ++;
         }

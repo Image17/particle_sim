@@ -32,7 +32,7 @@ typedef struct
 typedef struct _block_t
 {
   // particle pointer list
-  int* iP;
+  int iP[1000];
   // list of neighboring blocks
   struct _block_t* n_blocks;
 

@@ -67,10 +67,13 @@ int main( int argc, char **argv )
             {
               for (int z = 0; z < blocks[i][j].p_count; z++)
               {
+				  //int ksize = sizeof(blocks[i][j].n_blocks);
+				  //printf("k should go from 0 to %d\n",ksize);
                 particles[blocks[i][j].iP[z]].ax = particles[blocks[i][j].iP[z]].ay = 0;
-                for (int k = 0; k < (sizeof(blocks[i][j].n_blocks)/sizeof(block_t)); k++)
+                for (int k = 0; k < sizeof(blocks[i][j].n_blocks); k++)
                 {
-                  for (int y = 0; y < sizeof(blocks[i][j].n_blocks[k].p_count); y++)
+					//printf("for k = %d\n",k);
+                  for (int y = 0; y < blocks[i][j].n_blocks[k].p_count; y++)
                   {
                     apply_force( particles[blocks[i][j].iP[z]], particles[blocks[i][j].n_blocks[k].iP[y]],&dmin,&davg,&navg);
                   }

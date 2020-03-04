@@ -34,7 +34,8 @@ typedef struct _block_t
   // particle pointer list
   int iP[1000];
   // list of neighboring blocks
-  struct _block_t* n_blocks;
+  std::pair<int, int> blockXY[9];
+  //struct _block_t* n_blocks;
 
   //particle count
   int p_count;

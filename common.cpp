@@ -73,64 +73,66 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
            blocks[i][j].by_upper = cutoff * (j + 1);
 
 
-           if (i == 0 || i == (numblocks-1) || j == 0 || j == numblocks-1)
-           {
-              if ((i == 0 && j == 0) || (i == 0 && j == (numblocks-1)) || (i == (numblocks-1) && j == 0) || (i == (numblocks-1) && j == (numblocks-1)))
-              {
-                  //Corners
-                  blocks[i][j].n_blocks = (block_t *)malloc(3 * sizeof(block_t));
-              }
-              else
-              {
-                  //Sides
-                  blocks[i][j].n_blocks = (block_t *)malloc(5 * sizeof(block_t));
-              }
-           }
-           else
-           {
-              //Inner
-              blocks[i][j].n_blocks = (block_t *)malloc(8 * sizeof(block_t));
-           }
+           // if (i == 0 || i == (numblocks-1) || j == 0 || j == numblocks-1)
+           // {
+           //    if ((i == 0 && j == 0) || (i == 0 && j == (numblocks-1)) || (i == (numblocks-1) && j == 0) || (i == (numblocks-1) && j == (numblocks-1)))
+           //    {
+           //        //Corners
+           //        blocks[i][j].n_blocks = (block_t *)malloc(3 * sizeof(block_t));
+           //    }
+           //    else
+           //    {
+           //        //Sides
+           //        blocks[i][j].n_blocks = (block_t *)malloc(5 * sizeof(block_t));
+           //    }
+           // }
+           // else
+           // {
+           //    //Inner
+           //    blocks[i][j].n_blocks = (block_t *)malloc(8 * sizeof(block_t));
+           // }
            //set neighbor blocks
            int k = 0;
+           blocks[i][j].blockXY[k] = std::make_pair(i, j);
+           k++;
            if (i-1 >= 0)
            {
-              blocks[i][j].n_blocks[k] = blocks[i-1][j];
+              blocks[i][j].blockXY[k] = std::make_pair(i-1, j);
               k++;
               if (j-1 >= 0)
               {
-                  blocks[i][j].n_blocks[k] = blocks[i-1][j-1];
+                  blocks[i][j].blockXY[k] = std::make_pair(i-1, j-1);
                   k++;
               }
               if (j+1 < numblocks)
               {
-                  blocks[i][j].n_blocks[k] = blocks[i-1][j+1];
+                  blocks[i][j].blockXY[k] = std::make_pair(i-1, j+1);
                   k++;
               }
            }
            if (i+1 < numblocks)
            {
-              blocks[i][j].n_blocks[k] = blocks[i+1][j];
+              blocks[i][j].blockXY[k] = std::make_pair(i+1, j);
               k++;
               if (j-1 >= 0)
               {
-                  blocks[i][j].n_blocks[k] = blocks[i+1][j-1];
+                  blocks[i][j].blockXY[k] = std::make_pair(i+1, j-1);
                   k++;
               }
               if (j+1 < numblocks)
               {
-                  blocks[i][j].n_blocks[k] = blocks[i+1][j+1];
+                  blocks[i][j].blockXY[k] = std::make_pair(i+1, j+1);
                   k++;
               }
            }
            if (j-1 >= 0)
            {
-              blocks[i][j].n_blocks[k] = blocks[i][j-1];
+              blocks[i][j].blockXY[k] = std::make_pair(i, j-1);
               k++;
            }
            if (j+1 < numblocks)
            {
-              blocks[i][j].n_blocks[k] = blocks[i][j+1];
+              blocks[i][j].blockXY[k] = std::make_pair(i, j+1);
               k++;
            }
 
@@ -198,7 +200,7 @@ void init_particles( int n, particle_t *p, block_t **blocks )
         //
         p[i].x = size*(1.+(k%sx))/(1+sx);
         p[i].y = size*(1.+(k/sx))/(1+sy);
-    
+
         std::pair<int, int> blockXY = determine_block(p[i].x, p[i].y);
     //printf("for our coords %d, %d we are going to assign to block %d, %d\n",p[i].x,p[i].y,blockXY.first,blockXY.second);
     //printf("wtf %d\n", blockXY.first);

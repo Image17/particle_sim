@@ -68,25 +68,26 @@ int main( int argc, char **argv )
             {
               for (int z = 0; z < blocks[i][j].p_count; z++)
               {
-                  int ksize = sizeof(blocks[i][j].n_blocks);
+                  //int ksize = sizeof(blocks[i][j].n_blocks);
                   //printf("k should go from 0 to %d\n",ksize);
                 //particles[blocks[i][j].iP[z]].ax = particles[blocks[i][j].iP[z]].ay = 0;
-                for (int k = 0; k < sizeof(blocks[i][j].n_blocks); k++)
+                for (int k = 0; k < 8; k++)
                 {
                     //printf("for k = %d\n",k);
-                      int ysize =blocks[i][j].n_blocks[k].p_count;
+                      //int ysize = blocks[i][j].n_blocks[k].p_count;
                       //printf("y should go from 0 to %d\n",ysize);
-                      //cout << "y should go from 0 to" << ysize << endl; 
-                  for (int y = 0; y < blocks[i][j].n_blocks[k].p_count; y++)
+                      //cout << "y should go from 0 to" << ysize << endl;
+                      int nX = blocks[i][j].blockXY[k].first;
+                      int nY = blocks[i][j].blockXY[k].second;
+                  for (int y = 0; y < blocks[nX][nY].p_count; y++)
                   {
-
                       //printf("for y = %d\n",y);
                       //cout << "for y = " << y << endl;
-                      //cout << "applying force on z, y " << z << y << endl; 
+                      //cout << "applying force on z, y " << z << y << endl;
                       //particle_t myp = particles[blocks[i][j].iP[z]];
                       //particle_t myn = particles[blocks[i][j].n_blocks[k].iP[y]];
                         //cout << "after creating locals..." << endl;
-                    apply_force( particles[blocks[i][j].iP[z]], particles[blocks[i][j].n_blocks[k].iP[y]],&dmin,&davg,&navg);
+                      apply_force( particles[blocks[i][j].iP[z]], particles[blocks[nX][nY].iP[y]],&dmin,&davg,&navg);
                   }
                 }
               }

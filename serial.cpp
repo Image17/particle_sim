@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <vector>
 #include "common.h"
-#include <iostream>
-using namespace std;
+
 //
 //  benchmarking program
 //
@@ -25,6 +25,7 @@ int main( int argc, char **argv )
     }
 
     int n = read_int( argc, argv, "-n", 1000 );
+    int blockfactor = read_int( argc, argv, "-f", 1 );
 
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
@@ -33,16 +34,17 @@ int main( int argc, char **argv )
     FILE *fsum = sumname ? fopen ( sumname, "a" ) : NULL;
 
     particle_t *particles = (particle_t*) malloc( n * sizeof(particle_t) );
-
     set_size( n );
+    set_factor( blockfactor );
+    set_numblocks( blockfactor );
     int numblocks = get_numblocks();
-    block_t **blocks = (block_t**) malloc( numblocks * sizeof(block_t*) );
+    block_t** blocks = (block_t**)malloc( numblocks * sizeof(block_t));
     for (int i = 0; i < numblocks; i++)
     {
-         blocks[i] = (block_t *)malloc(numblocks * sizeof(block_t));
+      blocks[i] = (block_t*)malloc( numblocks * sizeof(block_t));
     }
-    init_blocks( n, blocks, particles);
-    init_particles( n, particles, blocks);
+    init_blocks( n, blocks, particles );
+    init_particles( n, particles, blocks );
 
     //
     //  simulate a number of time steps
@@ -51,55 +53,53 @@ int main( int argc, char **argv )
 
     for( int step = 0; step < NSTEPS; step++ )
     {
-    navg = 0;
+	navg = 0;
         davg = 0.0;
-    dmin = 1.0;
-
-
-
+	dmin = 1.0;
         //
         //  compute forces
         //
+        // for( int i = 0; i < n; i++ )
+        // {
+        //     //particles[i].ax = particles[i].ay = 0;
+        //     for (int j = 0; j < n; j++ )
+        //     {
+        //
+        //     }
+				//         apply_force( particles[i], particles[j],&dmin,&davg,&navg);
+        // }
 
-
-        for( int i = 0; i < numblocks; i++ )
+        for (int i = 0; i < numblocks; i++)
         {
-            for (int j = 0; j < numblocks; j++ )
+          for (int j = 0; j < numblocks; j++)
+          {
+            for (int y = 0; y < blocks[i][j].iP.size(); y++)
             {
-              for (int z = 0; z < blocks[i][j].p_count; z++)
+              int www = blocks[i][j].iP.size();
+              //printf("Block: %d %d PCount=%d \n",i,j,www);
+              int px = blocks[i][j].iP[y];
+              particles[px].ax = particles[px].ay = 0;
+              for (int k = 0; k < blocks[i][j].blockXY.size(); k++)
               {
-                  //int ksize = sizeof(blocks[i][j].n_blocks);
-                  //printf("k should go from 0 to %d\n",ksize);
-                //particles[blocks[i][j].iP[z]].ax = particles[blocks[i][j].iP[z]].ay = 0;
-                for (int k = 0; k < 8; k++)
+                int bbx = blocks[i][j].blockXY[k].first;
+                int bby = blocks[i][j].blockXY[k].second;
+                for (int x = 0; x < blocks[bbx][bby].iP.size(); x++)
                 {
-                    //printf("for k = %d\n",k);
-                      //int ysize = blocks[i][j].n_blocks[k].p_count;
-                      //printf("y should go from 0 to %d\n",ysize);
-                      //cout << "y should go from 0 to" << ysize << endl;
-                      int nX = blocks[i][j].blockXY[k].first;
-                      int nY = blocks[i][j].blockXY[k].second;
-                  for (int y = 0; y < blocks[nX][nY].p_count; y++)
-                  {
-                      //printf("for y = %d\n",y);
-                      //cout << "for y = " << y << endl;
-                      //cout << "applying force on z, y " << z << y << endl;
-                      //particle_t myp = particles[blocks[i][j].iP[z]];
-                      //particle_t myn = particles[blocks[i][j].n_blocks[k].iP[y]];
-                        //cout << "after creating locals..." << endl;
-                      apply_force( particles[blocks[i][j].iP[z]], particles[blocks[nX][nY].iP[y]],&dmin,&davg,&navg);
-                  }
+                  int nx = blocks[bbx][bby].iP[x];
+                  apply_force(particles[px], particles[nx], &dmin, &davg, &navg);
                 }
               }
             }
-         }
+          }
+        }
 
         //
         //  move particles
         //
         for( int i = 0; i < n; i++ )
-            move( particles[i], blocks, n );
-        update_blocks(blocks, particles, n );
+            move( particles[i] );
+
+        update_blocks ( blocks, particles, n );
 
         if( find_option( argc, argv, "-no" ) == -1 )
         {

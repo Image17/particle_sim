@@ -6,14 +6,12 @@
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
+#include <vector>
 #include "common.h"
-#include <utility>
-#include <iostream>
-
-using namespace std;
 
 double size;
 int numblocks;
+int factor;
 
 //
 //  tuned constants
@@ -47,7 +45,82 @@ double read_timer( )
 void set_size( int n )
 {
     size = sqrt( density * n );
-    numblocks = (int)ceil(size/cutoff);
+}
+
+void set_factor ( int n )
+{
+    factor = n;
+}
+
+void set_numblocks( int f )
+{
+    numblocks = ceil(size / (cutoff * f));
+}
+
+void update_blocks( block_t** blocks, particle_t* p, int n )
+{
+  for(int i = 0; i< numblocks; i++)
+  {
+    for(int j = 0; j < numblocks; j++)
+    {
+      blocks[i][j].iP.clear();
+    }
+  }
+
+  for (int i = 0; i < n; i++)
+  {
+    blocks[p[i].bx][p[i].by].iP.push_back(i);
+  }
+}
+
+std::pair <int,int> determine_block(double x, double y)
+{
+  int i = floor(x / (cutoff * factor));
+  int j = floor(y / (cutoff * factor));
+  return std::make_pair(i, j);
+}
+
+void init_blocks( int n, block_t **blocks, particle_t *p)
+{
+    for (int i = 0; i < numblocks; i++)
+    {
+        for (int j = 0; j < numblocks; j++)
+        {
+           blocks[i][j].blockXY.push_back(std::make_pair(i, j));
+           if (i-1 >= 0)
+           {
+              blocks[i][j].blockXY.push_back(std::make_pair(i-1, j));
+              if (j-1 >= 0)
+              {
+                  blocks[i][j].blockXY.push_back(std::make_pair(i-1, j-1));
+              }
+              if (j+1 < numblocks)
+              {
+                  blocks[i][j].blockXY.push_back(std::make_pair(i-1, j+1));
+              }
+           }
+           if (i+1 < numblocks)
+           {
+              blocks[i][j].blockXY.push_back(std::make_pair(i+1, j));
+              if (j-1 >= 0)
+              {
+                  blocks[i][j].blockXY.push_back(std::make_pair(i+1, j-1));
+              }
+              if (j+1 < numblocks)
+              {
+                  blocks[i][j].blockXY.push_back(std::make_pair(i+1, j+1));
+              }
+           }
+           if (j-1 >= 0)
+           {
+              blocks[i][j].blockXY.push_back(std::make_pair(i, j-1));
+           }
+           if (j+1 < numblocks)
+           {
+              blocks[i][j].blockXY.push_back(std::make_pair(i, j+1));
+           }
+        }
+    }
 }
 
 int get_numblocks()
@@ -55,130 +128,14 @@ int get_numblocks()
   return numblocks;
 }
 
-void init_blocks( int n, block_t **blocks, particle_t *p)
-{
-
-    for (int i = 0; i < numblocks; i++)
-    {
-        for (int j = 0; j < numblocks; j++)
-        {
-
-           //set bounds
-           // set upper and lower bounds for x coordinates
-           blocks[i][j].bx_lower = cutoff * (i);
-           blocks[i][j].bx_upper = cutoff * (i + 1);
-
-           // set upper and lower bounds for y coordinates
-           blocks[i][j].by_lower = cutoff * (j);
-           blocks[i][j].by_upper = cutoff * (j + 1);
-
-
-           // if (i == 0 || i == (numblocks-1) || j == 0 || j == numblocks-1)
-           // {
-           //    if ((i == 0 && j == 0) || (i == 0 && j == (numblocks-1)) || (i == (numblocks-1) && j == 0) || (i == (numblocks-1) && j == (numblocks-1)))
-           //    {
-           //        //Corners
-           //        blocks[i][j].n_blocks = (block_t *)malloc(3 * sizeof(block_t));
-           //    }
-           //    else
-           //    {
-           //        //Sides
-           //        blocks[i][j].n_blocks = (block_t *)malloc(5 * sizeof(block_t));
-           //    }
-           // }
-           // else
-           // {
-           //    //Inner
-           //    blocks[i][j].n_blocks = (block_t *)malloc(8 * sizeof(block_t));
-           // }
-           //set neighbor blocks
-           int k = 0;
-           blocks[i][j].blockXY[k] = std::make_pair(i, j);
-           k++;
-           if (i-1 >= 0)
-           {
-              blocks[i][j].blockXY[k] = std::make_pair(i-1, j);
-              k++;
-              if (j-1 >= 0)
-              {
-                  blocks[i][j].blockXY[k] = std::make_pair(i-1, j-1);
-                  k++;
-              }
-              if (j+1 < numblocks)
-              {
-                  blocks[i][j].blockXY[k] = std::make_pair(i-1, j+1);
-                  k++;
-              }
-           }
-           if (i+1 < numblocks)
-           {
-              blocks[i][j].blockXY[k] = std::make_pair(i+1, j);
-              k++;
-              if (j-1 >= 0)
-              {
-                  blocks[i][j].blockXY[k] = std::make_pair(i+1, j-1);
-                  k++;
-              }
-              if (j+1 < numblocks)
-              {
-                  blocks[i][j].blockXY[k] = std::make_pair(i+1, j+1);
-                  k++;
-              }
-           }
-           if (j-1 >= 0)
-           {
-              blocks[i][j].blockXY[k] = std::make_pair(i, j-1);
-              k++;
-           }
-           if (j+1 < numblocks)
-           {
-              blocks[i][j].blockXY[k] = std::make_pair(i, j+1);
-              k++;
-           }
-
-           //set inital particle lists
-           //if within bounds, add to list
-           blocks[i][j].p_count = 0;
-           //load_block(blocks[i][j], p, n);
-        }
-    }
-}
-
-void update_blocks ( block_t **blocks, particle_t *p, int n )
-{
-    //after move and init update block particle lists
-    //reset all block p lists with new arrays
-
-    for (int i = 0; i < numblocks; i++)
-    {
-        for (int j = 0; j < numblocks; j++)
-        {
-            blocks[i][j].i_track = 0;
-            //blocks[i][j].iP = (int *) malloc (blocks[i][j].p_count * sizeof(int));
-            //blocks[i][j].iP = new int[n];
-        }
-    }
-
-    //Loop through particles and assign them to their n_blocks
-
-    for (int i = 0; i < n; i++)
-    {
-        //cout << "adding particle at " << i << "to our x y " << p[i].bx << p[i].by << endl;
-        int k = blocks[p[i].bx][p[i].by].i_track;
-        blocks[p[i].bx][p[i].by].iP[k] = i;
-        blocks[p[i].bx][p[i].by].i_track++;
-    }
-}
-
 //
 //  Initialize the particle positions and velocities
 //
-void init_particles( int n, particle_t *p, block_t **blocks )
+void init_particles( int n, particle_t *p, block_t** blocks )
 {
     srand48( time( NULL ) );
 
     int sx = (int)ceil(sqrt((double)n));
-
     int sy = (n+sx-1)/sx;
 
     int *shuffle = (int*)malloc( n * sizeof(int) );
@@ -187,7 +144,6 @@ void init_particles( int n, particle_t *p, block_t **blocks )
 
     for( int i = 0; i < n; i++ )
     {
-    //printf("for i = %d\n",i);
         //
         //  make sure particles are not spatially sorted
         //
@@ -201,40 +157,21 @@ void init_particles( int n, particle_t *p, block_t **blocks )
         p[i].x = size*(1.+(k%sx))/(1+sx);
         p[i].y = size*(1.+(k/sx))/(1+sy);
 
-        std::pair<int, int> blockXY = determine_block(p[i].x, p[i].y);
-    //printf("for our coords %d, %d we are going to assign to block %d, %d\n",p[i].x,p[i].y,blockXY.first,blockXY.second);
-    //printf("wtf %d\n", blockXY.first);
-        blocks[blockXY.first][blockXY.second].p_count++;
-    //cout << "pair x: " << blockXY.first << endl;
-    //cout << "pair y: " << blockXY.second << endl;
-    //cout << "our p count " << blocks[blockXY.first][blockXY.second].p_count << endl;
-
+        std::pair <int,int> blockXY = determine_block(p[i].x, p[i].y);
 
         p[i].bx = blockXY.first;
         p[i].by = blockXY.second;
-    //p[i].bx = p[i].x;
-    //p[i].by = p[i].y;
+
         //
         //  assign random velocities within a bound
         //
         p[i].vx = drand48()*2-1;
         p[i].vy = drand48()*2-1;
-        //printf(" %d ", i);
     }
 
-    update_blocks(blocks, p, n);
+    update_blocks ( blocks, p, n );
 
     free( shuffle );
-}
-
-
-std::pair<int, int> determine_block(double x, double y)
-{
-  int i = (int)floor(x / cutoff);
-  int j = (int)floor(y  / cutoff);
-  std::pair<int, int> blockXY = std::make_pair(i, j);
-  //printf("determine coords %d, %d we are translating into %d, %d and then into pair %d, %d\n",x,y,i,j,blockXY.first,blockXY.second);
-  return blockXY;
 }
 
 //
@@ -243,28 +180,21 @@ std::pair<int, int> determine_block(double x, double y)
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg)
 {
 
-    //cout << "in apply force...." << endl;
     double dx = neighbor.x - particle.x;
     double dy = neighbor.y - particle.y;
     double r2 = dx * dx + dy * dy;
-  //printf("calculations: %d * %d = %d\n",dx,dy,r2);
-    if( r2 > cutoff*cutoff ) {
-        //printf("too far, skipping");
-    return;
-  }
-  if (r2 != 0)
+    if( r2 > cutoff*cutoff )
+        return;
+	if (r2 != 0)
         {
-     if (r2/(cutoff*cutoff) < *dmin * (*dmin))
-        //cout << "changing dmin" << endl;
-        *dmin = sqrt(r2)/cutoff;
+	   if (r2/(cutoff*cutoff) < *dmin * (*dmin))
+	      *dmin = sqrt(r2)/cutoff;
            (*davg) += sqrt(r2)/cutoff;
            (*navg) ++;
         }
 
     r2 = fmax( r2, min_r*min_r );
     double r = sqrt( r2 );
-
-
 
     //
     //  very simple short-range repulsive force
@@ -277,7 +207,7 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
 //
 //  integrate the ODE
 //
-void move( particle_t &p, block_t **blocks, int n )
+void move( particle_t &p )
 {
     //
     //  slightly simplified Velocity Verlet integration
@@ -309,10 +239,6 @@ void move( particle_t &p, block_t **blocks, int n )
     {
         p.by = blockXY.second;
         p.bx = blockXY.first;
-        if (blocks[oldBX][oldBY].p_count > 0)
-          blocks[oldBX][oldBY].p_count--;
-        if (blocks[blockXY.first][blockXY.second].p_count < n)
-          blocks[blockXY.first][blockXY.second].p_count++;
     }
 }
 

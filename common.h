@@ -1,6 +1,5 @@
 #ifndef __CS267_COMMON_H__
 #define __CS267_COMMON_H__
-#include <utility>
 
 inline int min( int a, int b ) { return a < b ? a : b; }
 inline int max( int a, int b ) { return a > b ? a : b; }
@@ -26,30 +25,10 @@ typedef struct
   int by;
 } particle_t;
 
-//
-// block data structure
-//
-typedef struct _block_t
+typedef struct
 {
-  // particle pointer list
-  int iP[1000];
-  // list of neighboring blocks
-  std::pair<int, int> blockXY[9];
-  //struct _block_t* n_blocks;
-
-  //particle count
-  int p_count;
-  //index tracker
-  int i_track;
-
-
-  // double x bounds
-  double bx_lower;
-  double bx_upper;
-  // double y bounds
-  double by_lower;
-  double by_upper;
-
+  std::vector<int> iP;
+  std::vector <std::pair<int, int>> blockXY;
 } block_t;
 
 //
@@ -60,14 +39,16 @@ double read_timer( );
 //
 //  simulation routines
 //
-void set_size( int n );
-void init_particles( int n, particle_t *p, block_t **blocks );
+void set_numblocks( int f );
 int get_numblocks();
-void update_blocks ( block_t **blocks, particle_t *p, int n );
+void set_factor ( int n );
+std::pair <int,int> determine_block(double x, double y);
+void set_size( int n );
 void init_blocks( int n, block_t **blocks, particle_t *p);
+void update_blocks( block_t** blocks, particle_t* particles, int n );
+void init_particles( int n, particle_t *p, block_t** blocks );
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
-void move( particle_t &p, block_t **blocks, int n  );
-std::pair<int, int> determine_block(double x, double y);
+void move( particle_t &p );
 
 
 //

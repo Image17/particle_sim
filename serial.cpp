@@ -44,7 +44,7 @@ int main( int argc, char **argv )
       blocks[i] = (block_t*)malloc( numblocks * sizeof(block_t));
     }
     init_blocks( n, blocks, particles );
-    init_particles( n, particles, blocks );
+    init_particles( n, particles );
 
     //
     //  simulate a number of time steps

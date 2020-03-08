@@ -131,7 +131,7 @@ int get_numblocks()
 //
 //  Initialize the particle positions and velocities
 //
-void init_particles( int n, particle_t *p, block_t** blocks )
+void init_particles( int n, particle_t *p)
 {
     srand48( time( NULL ) );
 
@@ -168,8 +168,6 @@ void init_particles( int n, particle_t *p, block_t** blocks )
         p[i].vx = drand48()*2-1;
         p[i].vy = drand48()*2-1;
     }
-
-    update_blocks ( blocks, p, n );
 
     free( shuffle );
 }

@@ -29,7 +29,34 @@ typedef struct
 {
   std::vector<int> iP;
   std::vector <std::pair<int, int> > blockXY;
+
 } block_t;
+
+typedef struct
+{
+  std::vector<int> particles;
+  int bx_upper;
+  int bx_lower;
+  int by_upper;
+  int by_lower;
+  
+  std::vector<int> top_left_section;
+  std::vector<int> top_left_section_neighbor;
+  std::vector<int> top_section;
+  std::vector<int> top_section_neighbor;
+  std::vector<int> top_right_section;
+  std::vector<int> top_right_section_neighbor;
+  std::vector<int> left_section;
+  std::vector<int> left_section_neighbor;
+  std::vector<int> right_section;
+  std::vector<int> right_section_neighbor;
+  std::vector<int> bottom_left_section;
+  std::vector<int> bottom_left_section_neighbor;
+  std::vector<int> bottom_section;
+  std::vector<int> bottom_section_neighbor;
+  std::vector<int> bottom_right_section;
+  std::vector<int> bottom_right_section_neighbor;
+} thread_block_t;
 
 //
 //  timing routines
@@ -49,7 +76,12 @@ void update_blocks( block_t** blocks, particle_t* particles, int n );
 void init_particles( int n, particle_t *p);
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
 void move( particle_t &p );
-
+// openmp
+std::pair <int,int> determine_thread_block(double x, double y);
+void init_thread_blocks(int n, thread_block_t** thread_blocks, particle_t* particles, int num_x_blocks, int num_y_blocks);
+void load_particles_into_thread_blocks(int n, thread_block_t** thread_blocks, particle_t* particles, double block_x_size, double block_y_size);
+void clear_out_thread_blocks(thread_block_t** thread_blocks, int num_x_blocks, int num_y_blocks);
+double get_size();
 
 //
 //  I/O routines

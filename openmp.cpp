@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <vector>
 #include "common.h"
 #include "omp.h"
 
@@ -40,20 +41,55 @@ int main( int argc, char **argv )
     //
     double simulation_time = read_timer( );
 
-    #pragma omp parallel private(dmin) 
+    #pragma omp parallel private(dmin)
     {
     numthreads = omp_get_num_threads();
+    
+    // get number of thread blocks base don numthreads
+    // 1:1x1
+    // 2:2* split in half
+    // 4:2x2
+    // 8:8* 2x4
+    // 16:4x4
+    double block_x_size, block_y_size;
+    int num_x_blocks, num_y_blocks;
+    if (numthreads != 2 && numthreads != 8)
+    {
+        block_x_size = block_y_size = get_size() / sqrt(numthreads);
+        num_x_blocks = num_y_blocks = sqrt(numthreads);
+    }
+    else
+    {
+        block_x_size = get_size() / 2;
+        block_y_size = get_size() / (numthreads / 2);
+        num_x_blocks = 2;
+        num_y_blocks = numthreads / 2;
+        //printf("for size %f we have %d x %d blocks we have sizes of %f and %f \n",get_size(),num_x_blocks,num_y_blocks,block_x_size,block_y_size);
+    }
+    
+    thread_block_t** thread_blocks = (thread_block_t**)malloc( num_x_blocks * sizeof(thread_block_t));
+    for (int i = 0; i < num_x_blocks; i++)
+    {
+      thread_blocks[i] = (thread_block_t*)malloc( num_y_blocks * sizeof(thread_block_t));
+    }
+    // load thread_blocks and assign particles into border sections
+    load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
+    init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
+
+    // init thread blocks
     for( int step = 0; step < 1000; step++ )
     {
         navg = 0;
         davg = 0.0;
-	dmin = 1.0;
+	    dmin = 1.0;
         //
         //  compute all forces
         //
         #pragma omp for reduction (+:navg) reduction(+:davg)
         for( int i = 0; i < n; i++ )
         {
+            int mytid = omp_get_thread_num();
+            //printf("current thread %d for iteration %d\n",mytid,i);
             particles[i].ax = particles[i].ay = 0;
             for (int j = 0; j < n; j++ )
                 apply_force( particles[i], particles[j],&dmin,&davg,&navg);
@@ -79,7 +115,14 @@ int main( int argc, char **argv )
           }
 
           #pragma omp critical
-	  if (dmin < absmin) absmin = dmin; 
+	    if (dmin < absmin)
+	    { 
+	        clear_out_thread_blocks(thread_blocks, num_x_blocks, num_y_blocks);
+            load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
+            init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
+	        absmin = dmin; 
+	        
+	    }
 		
           //
           //  save if necessary

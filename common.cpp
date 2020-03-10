@@ -47,6 +47,11 @@ void set_size( int n )
     size = sqrt( density * n );
 }
 
+double get_size()
+{
+    return size;
+}
+
 void set_factor ( int n )
 {
     factor = n;
@@ -78,6 +83,15 @@ std::pair <int,int> determine_block(double x, double y)
   int i = floor(x / (cutoff * factor));
   int j = floor(y / (cutoff * factor));
   return std::make_pair(i, j);
+}
+
+std::pair <int,int> determine_thread_block(double x, double y, double block_x_size, double block_y_size)
+{
+    
+   int i = floor(x / block_x_size);
+   int j = floor(y / block_y_size);
+   //printf("got coords %d , %d \n",i,j);
+   return std::make_pair(i, j);
 }
 
 void init_blocks( int n, block_t **blocks, particle_t *p)
@@ -119,6 +133,151 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
            {
               blocks[i][j].blockXY.push_back(std::make_pair(i, j+1));
            }
+        }
+    }
+}
+
+void clear_out_thread_blocks(thread_block_t** thread_blocks, int num_x_blocks, int num_y_blocks)
+{
+        for (int i = 0; i < num_x_blocks; i++)
+    {
+        for (int j = 0; j < num_y_blocks; j++)
+        {
+            thread_blocks[i][j].particles.clear();
+            // our sections
+            thread_blocks[i][j].top_left_section.clear();
+            thread_blocks[i][j].top_section.clear();
+            thread_blocks[i][j].top_right_section.clear();
+            thread_blocks[i][j].left_section.clear();
+            thread_blocks[i][j].right_section.clear();
+            thread_blocks[i][j].bottom_left_section.clear();
+            thread_blocks[i][j].bottom_section.clear();
+            thread_blocks[i][j].bottom_right_section.clear();
+            // neighbor sections
+            thread_blocks[i][j].top_left_section_neighbor.clear();
+            thread_blocks[i][j].top_section_neighbor.clear();
+            thread_blocks[i][j].top_right_section_neighbor.clear();
+            thread_blocks[i][j].left_section_neighbor.clear();
+            thread_blocks[i][j].right_section_neighbor.clear();
+            thread_blocks[i][j].bottom_left_section_neighbor.clear();
+            thread_blocks[i][j].bottom_section_neighbor.clear();
+            thread_blocks[i][j].bottom_right_section_neighbor.clear();
+        }
+    }
+}
+
+void load_particles_into_thread_blocks(int n, thread_block_t** thread_blocks, particle_t* particles, double block_x_size, double block_y_size)
+{
+    // iterate over thread blocks and clear sections
+    for (int i =0; i < n; i++)
+    {
+        particle_t p = particles[i];
+        std::pair<int,int> block_coordinates = determine_thread_block(p.x, p.y, block_x_size, block_y_size);
+        thread_block_t currblock = thread_blocks[block_coordinates.first][block_coordinates.second];
+        
+        // add particle to master list
+        currblock.particles.push_back(i);
+        
+        // determine what border section particle belongs to
+        double lower_x_bound = block_coordinates.first * block_x_size;
+        double upper_x_bound = (block_coordinates.first + 1) * block_x_size;
+        
+        double lower_y_bound = block_coordinates.second * block_y_size;
+        double upper_y_bound = (block_coordinates.second + 1) * block_y_size;
+        
+        bool passed_lower_x_bound = (p.x - cutoff) < lower_x_bound;
+        bool passed_upper_x_bound = (p.x + cutoff) > upper_x_bound;
+                
+        bool passed_lower_y_bound = (p.y - cutoff) < lower_y_bound;
+        bool passed_upper_y_bound = (p.y + cutoff) > upper_y_bound;
+        
+        // top right check
+        if (passed_upper_x_bound && passed_upper_y_bound)
+        {
+            currblock.top_right_section.push_back(i);
+        } else if (passed_upper_x_bound && passed_lower_y_bound)
+        {
+            currblock.bottom_right_section.push_back(i);
+        } else if (passed_lower_x_bound && passed_upper_y_bound) 
+        {
+            currblock.top_left_section.push_back(i);
+        } else if (passed_lower_x_bound && passed_lower_y_bound) 
+        {
+            currblock.bottom_left_section.push_back(i);
+        }
+        
+        if (passed_lower_x_bound) 
+        {
+            currblock.left_section.push_back(i);
+        }
+        if (passed_upper_x_bound) 
+        {
+            currblock.right_section.push_back(i);
+        }
+        if (passed_lower_y_bound)
+        {
+            currblock.bottom_section.push_back(i);
+        }
+        if (passed_upper_y_bound)
+        {
+            currblock.top_section.push_back(i);
+        }
+    }
+    
+}
+
+void init_thread_blocks(int n, thread_block_t** thread_blocks, particle_t* particles, int num_x_blocks, int num_y_blocks)
+{
+    for (int i = 0; i < num_x_blocks; i++)
+    {
+        for (int j = 0; j < num_y_blocks; j++)
+        {
+           //TODO we added ourselves as a neighbor, need to account for that
+           //blocks[i][j].blockXY.push_back(std::make_pair(i, j));
+           
+           
+           // to our left
+           if (i-1 >= 0)
+           {
+              thread_blocks[i][j].left_section_neighbor = thread_blocks[i-1][j].right_section;
+              // bottom left
+              if (j-1 >= 0)
+              {
+                  thread_blocks[i][j].bottom_left_section_neighbor = thread_blocks[i-1][j-1].top_right_section;
+              }
+              // top left
+              if (j+1 < num_y_blocks)
+              {
+                  thread_blocks[i][j].top_left_section_neighbor = thread_blocks[i-1][j+1].bottom_right_section;
+              }
+           }
+           // to our right
+           if (i+1 < num_x_blocks)
+           {
+              thread_blocks[i][j].right_section_neighbor = thread_blocks[i+1][j].left_section;
+              // bottom right
+              if (j-1 >= 0)
+              {
+                  thread_blocks[i][j].bottom_right_section_neighbor = thread_blocks[i+1][j-1].top_left_section;
+              }
+              // top right
+              if (j+1 < num_y_blocks)
+              {
+                  thread_blocks[i][j].top_right_section_neighbor = thread_blocks[i+1][j+1].bottom_left_section;
+              }
+           }
+           // below 
+           if (j-1 >= 0)
+           {
+              thread_blocks[i][j].bottom_section_neighbor = thread_blocks[i][j-1].top_section;
+           }
+           // above
+           if (j+1 < num_y_blocks)
+           {
+              thread_blocks[i][j].top_section_neighbor = thread_blocks[i][j+1].bottom_section;
+           }
+            
+            
         }
     }
 }

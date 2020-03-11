@@ -44,6 +44,12 @@ int main( int argc, char **argv )
 
     #pragma omp parallel private(dmin)
     {
+        
+    double block_x_size, block_y_size;
+    int num_x_blocks, num_y_blocks;
+    thread_block_t** thread_blocks;
+    #pragma omp single
+    {
     numthreads = omp_get_num_threads();
     
     // get number of thread blocks base don numthreads
@@ -52,8 +58,7 @@ int main( int argc, char **argv )
     // 4:2x2
     // 8:8* 2x4
     // 16:4x4
-    double block_x_size, block_y_size;
-    int num_x_blocks, num_y_blocks;
+
     if (numthreads != 2 && numthreads != 8)
     {
         block_x_size = block_y_size = get_size() / sqrt(numthreads);
@@ -68,7 +73,7 @@ int main( int argc, char **argv )
         //printf("for size %f we have %d x %d blocks we have sizes of %f and %f \n",get_size(),num_x_blocks,num_y_blocks,block_x_size,block_y_size);
     }
     
-    thread_block_t** thread_blocks = (thread_block_t**)malloc( num_x_blocks * sizeof(thread_block_t));
+    thread_blocks = (thread_block_t**)malloc( num_x_blocks * sizeof(thread_block_t));
     for (int i = 0; i < num_x_blocks; i++)
     {
       thread_blocks[i] = (thread_block_t*)malloc( num_y_blocks * sizeof(thread_block_t));
@@ -87,6 +92,7 @@ int main( int argc, char **argv )
     int total_blocks = num_x_blocks * num_y_blocks;
     printf("our number of blocks is %d for %d threads\n",total_blocks,numthreads);
 
+    }
     // init thread blocks
     for( int step = 0; step < 1000; step++ )
     {

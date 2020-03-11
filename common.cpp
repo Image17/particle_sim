@@ -173,10 +173,9 @@ void load_particles_into_thread_blocks(int n, thread_block_t** thread_blocks, pa
     {
         particle_t p = particles[i];
         std::pair<int,int> block_coordinates = determine_thread_block(p.x, p.y, block_x_size, block_y_size);
-        thread_block_t currblock = thread_blocks[block_coordinates.first][block_coordinates.second];
         
         // add particle to master list
-        currblock.particles.push_back(i);
+        thread_blocks[block_coordinates.first][block_coordinates.second].particles.push_back(i);
         
         // determine what border section particle belongs to
         double lower_x_bound = block_coordinates.first * block_x_size;
@@ -194,36 +193,36 @@ void load_particles_into_thread_blocks(int n, thread_block_t** thread_blocks, pa
         // top right check
         if (passed_upper_x_bound && passed_upper_y_bound)
         {
-            currblock.top_right_section.push_back(i);
+            thread_blocks[block_coordinates.first][block_coordinates.second].top_right_section.push_back(i);
         } else if (passed_upper_x_bound && passed_lower_y_bound)
         {
-            currblock.bottom_right_section.push_back(i);
+            thread_blocks[block_coordinates.first][block_coordinates.second].bottom_right_section.push_back(i);
         } else if (passed_lower_x_bound && passed_upper_y_bound) 
         {
-            currblock.top_left_section.push_back(i);
+            thread_blocks[block_coordinates.first][block_coordinates.second].top_left_section.push_back(i);
         } else if (passed_lower_x_bound && passed_lower_y_bound) 
         {
-            currblock.bottom_left_section.push_back(i);
+            thread_blocks[block_coordinates.first][block_coordinates.second].bottom_left_section.push_back(i);
         }
         
         if (passed_lower_x_bound) 
         {
-            currblock.left_section.push_back(i);
+            thread_blocks[block_coordinates.first][block_coordinates.second].left_section.push_back(i);
         }
         if (passed_upper_x_bound) 
         {
-            currblock.right_section.push_back(i);
+            thread_blocks[block_coordinates.first][block_coordinates.second].right_section.push_back(i);
         }
         if (passed_lower_y_bound)
         {
-            currblock.bottom_section.push_back(i);
+            thread_blocks[block_coordinates.first][block_coordinates.second].bottom_section.push_back(i);
         }
         if (passed_upper_y_bound)
         {
-            currblock.top_section.push_back(i);
+            thread_blocks[block_coordinates.first][block_coordinates.second].top_section.push_back(i);
         }
     }
-    
+    printf("finished load into block\n");
 }
 
 void init_thread_blocks(int n, thread_block_t** thread_blocks, particle_t* particles, int num_x_blocks, int num_y_blocks)

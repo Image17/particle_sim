@@ -13,6 +13,7 @@ int main( int argc, char **argv )
 {   
     int navg,nabsavg=0,numthreads; 
     double dmin, absmin=1.0,davg,absavg=0.0;
+    std::vector<thread_block_t> flattened_thread_blocks;
 	
     if( find_option( argc, argv, "-h" ) >= 0 )
     {
@@ -75,10 +76,21 @@ int main( int argc, char **argv )
     // load thread_blocks and assign particles into border sections
     load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
     init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
+    
+    for (int i = 0; i < num_x_blocks; i++)
+    {
+        for (int j = 0; j < num_y_blocks; j++)
+        {
+            flattened_thread_blocks.push_back(thread_blocks[i][j]);
+        }
+    }
+    int total_blocks = num_x_blocks * num_y_blocks;
+    printf("our number of blocks is %d for %d threads\n",total_blocks,numthreads);
 
     // init thread blocks
     for( int step = 0; step < 1000; step++ )
     {
+        //printf("===step %d===\n",step);
         navg = 0;
         davg = 0.0;
 	    dmin = 1.0;
@@ -86,13 +98,19 @@ int main( int argc, char **argv )
         //  compute all forces
         //
         #pragma omp for reduction (+:navg) reduction(+:davg)
-        for( int i = 0; i < n; i++ )
+        for (int i = 0; i < flattened_thread_blocks.size(); i++)
         {
-            int mytid = omp_get_thread_num();
-            //printf("current thread %d for iteration %d\n",mytid,i);
-            particles[i].ax = particles[i].ay = 0;
-            for (int j = 0; j < n; j++ )
-                apply_force( particles[i], particles[j],&dmin,&davg,&navg);
+            //printf("for block %d of total blocks %d\n",i,flattened_thread_blocks.size());
+            thread_block_t curr_block = flattened_thread_blocks[i];
+            // compare every particle in curr_block.particles to others
+            for (int j = 0; j < curr_block.particles.size(); j++)
+            {
+                particles[j].ax = particles[j].ay = 0;
+                for (int k = 0; k < curr_block.particles.size(); k++)
+                {
+                    apply_force( particles[curr_block.particles[j]], particles[curr_block.particles[k]],&dmin,&davg,&navg);
+                }
+            }
         }
         
 		

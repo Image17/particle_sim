@@ -137,7 +137,7 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
     }
 }
 
-void clear_out_thread_blocks(thread_block_t** thread_blocks, int num_x_blocks, int num_y_blocks)
+void clear_out_thread_blocks(std::vector<std::vector<thread_block_t>> thread_blocks, int num_x_blocks, int num_y_blocks)
 {
         for (int i = 0; i < num_x_blocks; i++)
     {
@@ -166,13 +166,16 @@ void clear_out_thread_blocks(thread_block_t** thread_blocks, int num_x_blocks, i
     }
 }
 
-void load_particles_into_thread_blocks(int n, thread_block_t** thread_blocks, particle_t* particles, double block_x_size, double block_y_size)
+void load_particles_into_thread_blocks(int n, std::vector<std::vector<thread_block_t>> thread_blocks, particle_t* particles, double block_x_size, double block_y_size)
 {
     // iterate over thread blocks and clear sections
     for (int i =0; i < n; i++)
     {
         particle_t p = particles[i];
         std::pair<int,int> block_coordinates = determine_thread_block(p.x, p.y, block_x_size, block_y_size);
+        //printf("checking on stuff.. for %d %d\n",block_coordinates.first,block_coordinates.second);
+        thread_block_t ttt = thread_blocks[block_coordinates.first][block_coordinates.second];
+        //printf("spill the ttt\n");
         
         // add particle to master list
         thread_blocks[block_coordinates.first][block_coordinates.second].particles.push_back(i);
@@ -222,10 +225,9 @@ void load_particles_into_thread_blocks(int n, thread_block_t** thread_blocks, pa
             thread_blocks[block_coordinates.first][block_coordinates.second].top_section.push_back(i);
         }
     }
-    printf("finished load into block\n");
 }
 
-void init_thread_blocks(int n, thread_block_t** thread_blocks, particle_t* particles, int num_x_blocks, int num_y_blocks)
+void init_thread_blocks(int n, std::vector<std::vector<thread_block_t>> thread_blocks, particle_t* particles, int num_x_blocks, int num_y_blocks)
 {
     for (int i = 0; i < num_x_blocks; i++)
     {

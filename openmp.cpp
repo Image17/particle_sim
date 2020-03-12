@@ -41,58 +41,67 @@ int main( int argc, char **argv )
     //  simulate a number of time steps
     //
     double simulation_time = read_timer( );
+    double block_x_size, block_y_size;
+    int num_x_blocks, num_y_blocks;
+    //thread_block_t** thread_blocks;
+    
+    numthreads = omp_get_max_threads();
+        if (numthreads != 2 && numthreads != 8)
+        {
+            block_x_size = block_y_size = get_size() / sqrt(numthreads);
+            num_x_blocks = num_y_blocks = sqrt(numthreads);
+        }
+        else
+        {
+            block_x_size = get_size() / 2;
+            block_y_size = get_size() / (numthreads / 2);
+            num_x_blocks = 2;
+            num_y_blocks = numthreads / 2;
+        }
+        
+        //thread_block_t** thread_blocks = (thread_block_t**)malloc( num_x_blocks * sizeof(thread_block_t) );
+        //for (int i = 0; i < num_x_blocks; i++)
+        //{
+          //thread_blocks[i] = (thread_block_t*) malloc( num_y_blocks * sizeof(thread_block_t) );
+        //}
+        // load thread_blocks and assign particles into border sections
+        //thread_block_t thread_blocks[num_x_blocks][num_y_blocks];
+        
+        //table = vector<vector<cellValue>> (mLengthX, vector<cellValue>(mLengthY));
+        
+        
+        std::vector<std::vector<thread_block_t>> thread_blocks = std::vector<std::vector<thread_block_t>> (num_x_blocks, std::vector<thread_block_t>(num_y_blocks));
+  
+
+        load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
+        init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
+        
+        for (int i = 0; i < num_x_blocks; i++)
+        {
+            for (int j = 0; j < num_y_blocks; j++)
+            {
+                flattened_thread_blocks.push_back(thread_blocks[i][j]);
+            }
+        }
+        int total_blocks = num_x_blocks * num_y_blocks;
 
     #pragma omp parallel private(dmin)
     {
         
-    double block_x_size, block_y_size;
-    int num_x_blocks, num_y_blocks;
-    thread_block_t** thread_blocks;
-    #pragma omp single
-    {
-    numthreads = omp_get_num_threads();
-    
-    // get number of thread blocks base don numthreads
-    // 1:1x1
-    // 2:2* split in half
-    // 4:2x2
-    // 8:8* 2x4
-    // 16:4x4
 
-    if (numthreads != 2 && numthreads != 8)
-    {
-        block_x_size = block_y_size = get_size() / sqrt(numthreads);
-        num_x_blocks = num_y_blocks = sqrt(numthreads);
-    }
-    else
-    {
-        block_x_size = get_size() / 2;
-        block_y_size = get_size() / (numthreads / 2);
-        num_x_blocks = 2;
-        num_y_blocks = numthreads / 2;
-        //printf("for size %f we have %d x %d blocks we have sizes of %f and %f \n",get_size(),num_x_blocks,num_y_blocks,block_x_size,block_y_size);
-    }
-    
-    thread_blocks = (thread_block_t**)malloc( num_x_blocks * sizeof(thread_block_t));
-    for (int i = 0; i < num_x_blocks; i++)
-    {
-      thread_blocks[i] = (thread_block_t*)malloc( num_y_blocks * sizeof(thread_block_t));
-    }
-    // load thread_blocks and assign particles into border sections
-    load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
-    init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
-    
-    for (int i = 0; i < num_x_blocks; i++)
-    {
-        for (int j = 0; j < num_y_blocks; j++)
-        {
-            flattened_thread_blocks.push_back(thread_blocks[i][j]);
-        }
-    }
-    int total_blocks = num_x_blocks * num_y_blocks;
-    printf("our number of blocks is %d for %d threads\n",total_blocks,numthreads);
 
-    }
+        numthreads = omp_get_num_threads();
+        
+        // get number of thread blocks base don numthreads
+        // 1:1x1
+        // 2:2* split in half
+        // 4:2x2
+        // 8:8* 2x4
+        // 16:4x4
+    
+
+
+    
     // init thread blocks
     for( int step = 0; step < 1000; step++ )
     {

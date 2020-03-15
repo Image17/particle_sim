@@ -111,8 +111,7 @@ int main( int argc, char **argv )
         //  compute all forces
         //
 
-            //printf("for block %d of total blocks %d\n",i,flattened_thread_blocks.size());
-            thread_block_t curr_block = flattened_thread_blocks[i];
+            thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()];
             // compare every particle in curr_block.particles to others
             #pragma omp for reduction (+:navg) reduction(+:davg)
             for (int j = 0; j < curr_block.particles.size(); j++)

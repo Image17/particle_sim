@@ -166,7 +166,7 @@ void clear_out_thread_blocks(std::vector<std::vector<thread_block_t> > thread_bl
     }
 }
 
-void load_particles_into_thread_blocks(int n, std::vector<std::vector<thread_block_t> > thread_blocks, particle_t* particles, double block_x_size, double block_y_size)
+std::vector<std::vector<thread_block_t> >  load_particles_into_thread_blocks(int n, std::vector<std::vector<thread_block_t> > thread_blocks, particle_t* particles, double block_x_size, double block_y_size)
 {
     // iterate over thread blocks and clear sections
     for (int i =0; i < n; i++)
@@ -225,9 +225,11 @@ void load_particles_into_thread_blocks(int n, std::vector<std::vector<thread_blo
             thread_blocks[block_coordinates.first][block_coordinates.second].top_section.push_back(i);
         }
     }
+    
+    return thread_blocks;
 }
 
-void init_thread_blocks(int n, std::vector<std::vector<thread_block_t> > thread_blocks, particle_t* particles, int num_x_blocks, int num_y_blocks)
+std::vector<std::vector<thread_block_t> >  init_thread_blocks(int n, std::vector<std::vector<thread_block_t> > thread_blocks, particle_t* particles, int num_x_blocks, int num_y_blocks)
 {
     for (int i = 0; i < num_x_blocks; i++)
     {
@@ -281,6 +283,7 @@ void init_thread_blocks(int n, std::vector<std::vector<thread_block_t> > thread_
             
         }
     }
+    return thread_blocks;
 }
 
 int get_numblocks()

@@ -10,19 +10,19 @@
 //  benchmarking program
 //
 int main( int argc, char **argv )
-{   
-    int navg,nabsavg=0,numthreads; 
+{
+    int navg,nabsavg=0,numthreads;
     double dmin, absmin=1.0,davg,absavg=0.0;
     std::vector<thread_block_t> flattened_thread_blocks;
-	
+
     if( find_option( argc, argv, "-h" ) >= 0 )
     {
         printf( "Options:\n" );
         printf( "-h to see this help\n" );
         printf( "-n <int> to set number of particles\n" );
         printf( "-o <filename> to specify the output file name\n" );
-        printf( "-s <filename> to specify a summary file name\n" ); 
-        printf( "-no turns off all correctness checks and particle output\n");   
+        printf( "-s <filename> to specify a summary file name\n" );
+        printf( "-no turns off all correctness checks and particle output\n");
         return 0;
     }
 
@@ -31,7 +31,7 @@ int main( int argc, char **argv )
     char *sumname = read_string( argc, argv, "-s", NULL );
 
     FILE *fsave = savename ? fopen( savename, "w" ) : NULL;
-    FILE *fsum = sumname ? fopen ( sumname, "a" ) : NULL;      
+    FILE *fsum = sumname ? fopen ( sumname, "a" ) : NULL;
 
     particle_t *particles = (particle_t*) malloc( n * sizeof(particle_t) );
     set_size( n );
@@ -44,7 +44,7 @@ int main( int argc, char **argv )
     double block_x_size, block_y_size;
     int num_x_blocks, num_y_blocks;
     //thread_block_t** thread_blocks;
-    
+
     numthreads = omp_get_max_threads();
         if (numthreads != 2 && numthreads != 8)
         {
@@ -58,7 +58,7 @@ int main( int argc, char **argv )
             num_x_blocks = 2;
             num_y_blocks = numthreads / 2;
         }
-        
+
         //thread_block_t** thread_blocks = (thread_block_t**)malloc( num_x_blocks * sizeof(thread_block_t) );
         //for (int i = 0; i < num_x_blocks; i++)
         //{
@@ -66,14 +66,14 @@ int main( int argc, char **argv )
         //}
         // load thread_blocks and assign particles into border sections
         //thread_block_t thread_blocks[num_x_blocks][num_y_blocks];
-        
-        
+
+
         std::vector<std::vector<thread_block_t> > thread_blocks = std::vector<std::vector<thread_block_t> > (num_x_blocks, std::vector<thread_block_t>(num_y_blocks));
-  
+
 
         thread_blocks = load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
         thread_blocks = init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
-        
+
         for (int i = 0; i < num_x_blocks; i++)
         {
             for (int j = 0; j < num_y_blocks; j++)
@@ -85,21 +85,21 @@ int main( int argc, char **argv )
 
     #pragma omp parallel private(dmin)
     {
-        
+
 
 
         numthreads = omp_get_num_threads();
-        
+
         // get number of thread blocks base don numthreads
         // 1:1x1
         // 2:2* split in half
         // 4:2x2
         // 8:8* 2x4
         // 16:4x4
-    
 
 
-    
+
+
     // init thread blocks
     for( int step = 0; step < 1000; step++ )
     {
@@ -113,17 +113,21 @@ int main( int argc, char **argv )
 
             thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()];
             // compare every particle in curr_block.particles to others
-            printf(" %d %d \n", omp_get_thread_num(), curr_block.particles.size());
-            #pragma omp for reduction (+:navg) reduction(+:davg)
+            //printf("for step %d and thread %d we have %d particles \n", step, omp_get_thread_num(), curr_block.particles.size());
+            int interactios =0;
+            //#pragma omp for reduction (+:navg) reduction(+:davg)
             for (int j = 0; j < curr_block.particles.size(); j++)
             {
                 particles[curr_block.particles[j]].ax = particles[curr_block.particles[j]].ay = 0;
                 for (int k = 0; k < curr_block.particles.size(); k++)
                 {
+                  interactios += 1;
                     apply_force( particles[curr_block.particles[j]], particles[curr_block.particles[k]],&dmin,&davg,&navg);
                 }
             }
-         #pragma omp for reduction (+:navg) reduction(+:davg)
+
+          //  printf("for step %d and thread %d we had %d interactions \n", step, omp_get_thread_num(), interactios);
+         //#pragma omp for reduction (+:navg) reduction(+:davg)
          for (int ri = 0; ri < curr_block.right_section.size(); ri++)
             {
                 for (int rin = 0; rin < curr_block.right_section_neighbor.size(); rin++)
@@ -139,7 +143,7 @@ int main( int argc, char **argv )
                     apply_force( particles[curr_block.right_section[ri]], particles[curr_block.bottom_right_section_neighbor[rbin]],&dmin,&davg,&navg);
                 }
             }
-         #pragma omp for reduction (+:navg) reduction(+:davg)
+         //#pragma omp for reduction (+:navg) reduction(+:davg)
          for (int li = 0; li < curr_block.left_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.left_section_neighbor.size(); lin++)
@@ -155,7 +159,7 @@ int main( int argc, char **argv )
                     apply_force( particles[curr_block.left_section[li]], particles[curr_block.bottom_left_section_neighbor[lbin]],&dmin,&davg,&navg);
                 }
             }
-         #pragma omp for reduction (+:navg) reduction(+:davg)
+         //#pragma omp for reduction (+:navg) reduction(+:davg)
          for (int li = 0; li < curr_block.top_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.top_section_neighbor.size(); lin++)
@@ -171,7 +175,7 @@ int main( int argc, char **argv )
                     apply_force( particles[curr_block.top_section[li]], particles[curr_block.top_left_section_neighbor[lbin]],&dmin,&davg,&navg);
                 }
             }
-         #pragma omp for reduction (+:navg) reduction(+:davg)
+         //#pragma omp for reduction (+:navg) reduction(+:davg)
          for (int li = 0; li < curr_block.bottom_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.bottom_section_neighbor.size(); lin++)
@@ -187,30 +191,31 @@ int main( int argc, char **argv )
                     apply_force( particles[curr_block.bottom_section[li]], particles[curr_block.bottom_left_section_neighbor[lbin]],&dmin,&davg,&navg);
                 }
             }
-        
-        
-		
+
+        #pragma omp barrier
+
+
         //
         //  move particles
         //
         #pragma omp for
-        for( int i = 0; i < n; i++ ) 
+        for( int i = 0; i < n; i++ )
             move( particles[i] );
-  
-        if( find_option( argc, argv, "-no" ) == -1 ) 
+
+        if( find_option( argc, argv, "-no" ) == -1 )
         {
           //
           //  compute statistical data
           //
           #pragma omp master
-          if (navg) { 
+          if (navg) {
             absavg += davg/navg;
             nabsavg++;
           }
 
-          #pragma omp critical
+          #pragma omp single
           {
-	        thread_blocks = clear_out_thread_blocks(thread_blocks, num_x_blocks, num_y_blocks);
+            thread_blocks = clear_out_thread_blocks(thread_blocks, num_x_blocks, num_y_blocks);
             thread_blocks = load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
             thread_blocks = init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
             flattened_thread_blocks.clear();
@@ -221,14 +226,17 @@ int main( int argc, char **argv )
                     flattened_thread_blocks.push_back(thread_blocks[i][j]);
                 }
             }
+          }
+          #pragma omp critical
+          {
     	    if (dmin < absmin)
-    	    { 
-    
-    	        absmin = dmin; 
-    	        
+    	    {
+
+    	        absmin = dmin;
+
     	    }
          }
-		
+
           //
           //  save if necessary
           //
@@ -239,13 +247,13 @@ int main( int argc, char **argv )
     }
 }
     simulation_time = read_timer( ) - simulation_time;
-    
+
     printf( "n = %d,threads = %d, simulation time = %g seconds", n,numthreads, simulation_time);
 
     if( find_option( argc, argv, "-no" ) == -1 )
     {
       if (nabsavg) absavg /= nabsavg;
-    // 
+    //
     //  -the minimum distance absmin between 2 particles during the run of the simulation
     //  -A Correct simulation will have particles stay at greater than 0.4 (of cutoff) with typical values between .7-.8
     //  -A simulation were particles don't interact correctly will be less than 0.4 (of cutoff) with typical values between .01-.05
@@ -257,7 +265,7 @@ int main( int argc, char **argv )
     if (absavg < 0.8) printf ("\nThe average distance is below 0.8 meaning that most particles are not interacting");
     }
     printf("\n");
-    
+
     //
     // Printing summary data
     //
@@ -273,6 +281,6 @@ int main( int argc, char **argv )
     free( particles );
     if( fsave )
         fclose( fsave );
-    
+
     return 0;
 }

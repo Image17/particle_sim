@@ -110,12 +110,11 @@ int main( int argc, char **argv )
         //
         //  compute all forces
         //
-        #pragma omp for reduction (+:navg) reduction(+:davg)
-        for (int i = 0; i < flattened_thread_blocks.size(); i++)
-        {
+
             //printf("for block %d of total blocks %d\n",i,flattened_thread_blocks.size());
-            thread_block_t curr_block = flattened_thread_blocks[i];
+            //thread_block_t curr_block = flattened_thread_blocks[i];
             // compare every particle in curr_block.particles to others
+            #pragma omp for reduction (+:navg) reduction(+:davg)
             for (int j = 0; j < curr_block.particles.size(); j++)
             {
                 particles[j].ax = particles[j].ay = 0;
@@ -124,7 +123,7 @@ int main( int argc, char **argv )
                     apply_force( particles[curr_block.particles[j]], particles[curr_block.particles[k]],&dmin,&davg,&navg);
                 }
             }
-        }
+        
         
 		
         //

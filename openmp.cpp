@@ -148,7 +148,7 @@ int main( int argc, char **argv )
           #pragma omp critical
 	    if (dmin < absmin)
 	    { 
-	        clear_out_thread_blocks(thread_blocks, num_x_blocks, num_y_blocks);
+	        thread_blocks = clear_out_thread_blocks(thread_blocks, num_x_blocks, num_y_blocks);
             load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
             init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
 	        absmin = dmin; 

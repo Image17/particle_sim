@@ -113,6 +113,7 @@ int main( int argc, char **argv )
 
             thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()];
             // compare every particle in curr_block.particles to others
+            printf(" %d %d \n", omp_get_thread_num(), curr_block.particles.size());
             #pragma omp for reduction (+:navg) reduction(+:davg)
             for (int j = 0; j < curr_block.particles.size(); j++)
             {
@@ -120,6 +121,70 @@ int main( int argc, char **argv )
                 for (int k = 0; k < curr_block.particles.size(); k++)
                 {
                     apply_force( particles[curr_block.particles[j]], particles[curr_block.particles[k]],&dmin,&davg,&navg);
+                }
+            }
+         #pragma omp for reduction (+:navg) reduction(+:davg)
+         for (int ri = 0; ri < curr_block.right_section.size(); ri++)
+            {
+                for (int rin = 0; rin < curr_block.right_section_neighbor.size(); rin++)
+                {
+                    apply_force( particles[curr_block.right_section[ri]], particles[curr_block.right_section_neighbor[rin]],&dmin,&davg,&navg);
+                }
+                for (int rtin = 0; rtin < curr_block.top_right_section_neighbor.size(); rtin++)
+                {
+                    apply_force( particles[curr_block.right_section[ri]], particles[curr_block.top_right_section_neighbor[rtin]],&dmin,&davg,&navg);
+                }
+                for (int rbin = 0; rbin < curr_block.bottom_right_section_neighbor.size(); rbin++)
+                {
+                    apply_force( particles[curr_block.right_section[ri]], particles[curr_block.bottom_right_section_neighbor[rbin]],&dmin,&davg,&navg);
+                }
+            }
+         #pragma omp for reduction (+:navg) reduction(+:davg)
+         for (int li = 0; li < curr_block.left_section.size(); li++)
+            {
+                for (int lin = 0; lin < curr_block.left_section_neighbor.size(); lin++)
+                {
+                    apply_force( particles[curr_block.left_section[li]], particles[curr_block.left_section_neighbor[lin]],&dmin,&davg,&navg);
+                }
+                for (int ltin = 0; ltin < curr_block.top_left_section_neighbor.size(); ltin++)
+                {
+                    apply_force( particles[curr_block.left_section[li]], particles[curr_block.top_left_section_neighbor[ltin]],&dmin,&davg,&navg);
+                }
+                for (int lbin = 0; lbin < curr_block.bottom_left_section_neighbor.size(); lbin++)
+                {
+                    apply_force( particles[curr_block.left_section[li]], particles[curr_block.bottom_left_section_neighbor[lbin]],&dmin,&davg,&navg);
+                }
+            }
+         #pragma omp for reduction (+:navg) reduction(+:davg)
+         for (int li = 0; li < curr_block.top_section.size(); li++)
+            {
+                for (int lin = 0; lin < curr_block.top_section_neighbor.size(); lin++)
+                {
+                    apply_force( particles[curr_block.top_section[li]], particles[curr_block.top_section_neighbor[lin]],&dmin,&davg,&navg);
+                }
+                for (int ltin = 0; ltin < curr_block.top_right_section_neighbor.size(); ltin++)
+                {
+                    apply_force( particles[curr_block.top_section[li]], particles[curr_block.top_right_section_neighbor[ltin]],&dmin,&davg,&navg);
+                }
+                for (int lbin = 0; lbin < curr_block.top_left_section_neighbor.size(); lbin++)
+                {
+                    apply_force( particles[curr_block.top_section[li]], particles[curr_block.top_left_section_neighbor[lbin]],&dmin,&davg,&navg);
+                }
+            }
+         #pragma omp for reduction (+:navg) reduction(+:davg)
+         for (int li = 0; li < curr_block.bottom_section.size(); li++)
+            {
+                for (int lin = 0; lin < curr_block.bottom_section_neighbor.size(); lin++)
+                {
+                    apply_force( particles[curr_block.bottom_section[li]], particles[curr_block.bottom_section_neighbor[lin]],&dmin,&davg,&navg);
+                }
+                for (int ltin = 0; ltin < curr_block.bottom_right_section_neighbor.size(); ltin++)
+                {
+                    apply_force( particles[curr_block.bottom_section[li]], particles[curr_block.bottom_right_section_neighbor[ltin]],&dmin,&davg,&navg);
+                }
+                for (int lbin = 0; lbin < curr_block.bottom_left_section_neighbor.size(); lbin++)
+                {
+                    apply_force( particles[curr_block.bottom_section[li]], particles[curr_block.bottom_left_section_neighbor[lbin]],&dmin,&davg,&navg);
                 }
             }
         
@@ -144,14 +209,25 @@ int main( int argc, char **argv )
           }
 
           #pragma omp critical
-	    if (dmin < absmin)
-	    { 
+          {
 	        thread_blocks = clear_out_thread_blocks(thread_blocks, num_x_blocks, num_y_blocks);
             thread_blocks = load_particles_into_thread_blocks(n, thread_blocks, particles, block_x_size, block_y_size);
             thread_blocks = init_thread_blocks(n, thread_blocks, particles, num_x_blocks, num_y_blocks);
-	        absmin = dmin; 
-	        
-	    }
+            flattened_thread_blocks.clear();
+           for (int i = 0; i < num_x_blocks; i++)
+            {
+                for (int j = 0; j < num_y_blocks; j++)
+                {
+                    flattened_thread_blocks.push_back(thread_blocks[i][j]);
+                }
+            }
+    	    if (dmin < absmin)
+    	    { 
+    
+    	        absmin = dmin; 
+    	        
+    	    }
+         }
 		
           //
           //  save if necessary

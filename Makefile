@@ -23,7 +23,7 @@ serial: serial.o common.o
 autograder: autograder.o common.o
 	$(CC) -o $@ $(LIBS) autograder.o common.o
 pthreads: pthreads.o common.o
-	$(CC) -o $@ $(LIBS) -lpthread pthreads.o common.o
+	$(CC) -o $@ $(LIBS) -pthread pthreads.o common.o
 openmp: openmp.o common.o
 	$(CC) -o $@ $(LIBS) $(OPENMP) openmp.o common.o
 mpi: mpi.o common.o

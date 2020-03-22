@@ -84,7 +84,6 @@ int main( int argc, char **argv )
         }
         int total_blocks = num_x_blocks * num_y_blocks;
         
-    printf("before parallel\n");
     #pragma omp parallel private(dmin)
     {
 
@@ -105,7 +104,6 @@ int main( int argc, char **argv )
     // init thread blocks
     for( int step = 0; step < 1000; step++ )
     {
-        printf("===step %d===\n",step);
         navg = 0;
         davg = 0.0;
 	    dmin = 1.0;
@@ -126,24 +124,13 @@ int main( int argc, char **argv )
 
                      
              std::vector<std::vector<block_t> > blocks = std::vector<std::vector<block_t> > (xblocks, std::vector<block_t>(yblocks));
-            
-            printf("finished instantiating blocks\n");
-            
-             
-             printf("starting init_blocks\n");
-            blocks = init_blocks_xy( curr_block.particles.size(), blocks, particles, xblocks, yblocks );
-            printf("finished init_blocks\n");
-            
-            printf("beginning assignment\n");
-            assign_particles_to_blocks(curr_block.particles, curr_block.particles.size(), particles);
-            printf("ending assignment\n");
-            
-            printf("starting update\n");
-            blocks = update_blocks_xy( blocks, curr_block.particles, curr_block.particles.size(), xblocks, yblocks, particles );
-            printf("ending update\n");
 
-            
-            printf("beginning on my blocks..\n");
+            blocks = init_blocks_xy( curr_block.particles.size(), blocks, particles, xblocks, yblocks );
+
+            assign_particles_to_blocks(curr_block.particles, curr_block.particles.size(), particles, xblocks, yblocks);
+
+            blocks = update_blocks_xy( blocks, curr_block.particles, curr_block.particles.size(), xblocks, yblocks, particles );
+
             for (int i = 0; i < xblocks; i++)
             {
               for (int j = 0; j < yblocks; j++)
@@ -169,13 +156,11 @@ int main( int argc, char **argv )
                 }
               }
             }
-            printf("out of apply force loop\n");
             
 
 
           //  printf("for step %d and thread %d we had %d interactions \n", step, omp_get_thread_num(), interactios);
          //#pragma omp for reduction (+:navg) reduction(+:davg)
-         printf("starting right\n");
          for (int ri = 0; ri < curr_block.right_section.size(); ri++)
             {
                 for (int rin = 0; rin < curr_block.right_section_neighbor.size(); rin++)
@@ -192,7 +177,6 @@ int main( int argc, char **argv )
                 }
             }
          //#pragma omp for reduction (+:navg) reduction(+:davg)
-         printf("starting left\n");
          for (int li = 0; li < curr_block.left_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.left_section_neighbor.size(); lin++)
@@ -209,7 +193,6 @@ int main( int argc, char **argv )
                 }
             }
          //#pragma omp for reduction (+:navg) reduction(+:davg)
-         printf("starting top\n");
          for (int li = 0; li < curr_block.top_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.top_section_neighbor.size(); lin++)
@@ -226,7 +209,6 @@ int main( int argc, char **argv )
                 }
             }
          //#pragma omp for reduction (+:navg) reduction(+:davg)
-         printf("starting bottom\n");
          for (int li = 0; li < curr_block.bottom_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.bottom_section_neighbor.size(); lin++)
@@ -242,7 +224,6 @@ int main( int argc, char **argv )
                     apply_force( particles[curr_block.bottom_section[li]], particles[curr_block.bottom_left_section_neighbor[lbin]],&dmin,&davg,&navg);
                 }
             }
-        printf("out of neighbor loop\n");
         #pragma omp barrier
 
 
@@ -252,7 +233,6 @@ int main( int argc, char **argv )
         #pragma omp for
         for( int i = 0; i < n; i++ )
             move( particles[i] );
-        printf("done move\n");
 
         if( find_option( argc, argv, "-no" ) == -1 )
         {

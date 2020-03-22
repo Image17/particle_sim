@@ -402,16 +402,13 @@ void init_particles( int n, particle_t *p)
     free( shuffle );
 }
 
-void assign_particles_to_blocks(std::vector<int> block_particles, int n, particle_t *p)
+void assign_particles_to_blocks(std::vector<int> block_particles, int n, particle_t *p, int num_x_blocks, int num_y_blocks)
 {
     for (int i = 0; i < block_particles.size(); i++)
     {
-        p[block_particles[i]].x;
-        p[block_particles[i]].y;
-        
         std::pair <int,int> blockXY = determine_block(p[block_particles[i]].x, p[block_particles[i]].y);
-        p[block_particles[i]].bx = blockXY.first;
-        p[block_particles[i]].by = blockXY.second;
+        p[block_particles[i]].bx = blockXY.first % num_x_blocks;
+        p[block_particles[i]].by = blockXY.second % num_y_blocks;
     }
     
 }

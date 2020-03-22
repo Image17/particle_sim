@@ -86,6 +86,7 @@ std::vector<std::vector<thread_block_t> > clear_out_thread_blocks(std::vector<st
 double get_size();
 
 void assign_particles_to_blocks(std::vector<int> block_particles, int n, particle_t *p, int num_x_blocks, int num_y_blocks);
+void move_normalized( particle_t &p, int num_x_blocks, int num_y_blocks );
 
 //
 //  I/O routines

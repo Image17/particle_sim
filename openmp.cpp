@@ -11,7 +11,6 @@
 //
 int main( int argc, char **argv )
 {
-    printf("in main\n");
     int navg,nabsavg=0,numthreads,numblocks;
     double dmin, absmin=1.0,davg,absavg=0.0;
     std::vector<thread_block_t> flattened_thread_blocks;
@@ -232,7 +231,7 @@ int main( int argc, char **argv )
         //
         #pragma omp for
         for( int i = 0; i < n; i++ )
-            move( particles[i] );
+            move_normalized( particles[i], num_x_blocks, num_y_blocks );
 
         if( find_option( argc, argv, "-no" ) == -1 )
         {

@@ -106,6 +106,13 @@ std::pair <int,int> determine_block(double x, double y)
   return std::make_pair(i, j);
 }
 
+std::pair <int,int> determine_block_normalized(double x, double y, int num_x_blocks, int num_y_blocks)
+{
+  int i = floor(x / (cutoff * factor));
+  int j = floor(y / (cutoff * factor));
+  return std::make_pair(i % num_x_blocks, j % num_y_blocks);
+}
+
 std::pair <int,int> determine_thread_block(double x, double y, double block_x_size, double block_y_size)
 {
     
@@ -406,9 +413,9 @@ void assign_particles_to_blocks(std::vector<int> block_particles, int n, particl
 {
     for (int i = 0; i < block_particles.size(); i++)
     {
-        std::pair <int,int> blockXY = determine_block(p[block_particles[i]].x, p[block_particles[i]].y);
-        p[block_particles[i]].bx = blockXY.first % num_x_blocks;
-        p[block_particles[i]].by = blockXY.second % num_y_blocks;
+        std::pair <int,int> blockXY = determine_block_normalized(p[block_particles[i]].x, p[block_particles[i]].y,num_x_blocks,num_y_blocks);
+        p[block_particles[i]].bx = blockXY.first;
+        p[block_particles[i]].by = blockXY.second;
     }
     
 }
@@ -481,6 +488,43 @@ void move( particle_t &p )
         p.bx = blockXY.first;
     }
 }
+
+void move_normalized( particle_t &p, int num_x_blocks, int num_y_blocks )
+{
+    //
+    //  slightly simplified Velocity Verlet integration
+    //  conserves energy better than explicit Euler method
+    //
+    int oldBX = p.bx;
+    int oldBY = p.by;
+
+    p.vx += p.ax * dt;
+    p.vy += p.ay * dt;
+    p.x  += p.vx * dt;
+    p.y  += p.vy * dt;
+
+    //
+    //  bounce from walls
+    //
+    while( p.x < 0 || p.x > size )
+    {
+        p.x  = p.x < 0 ? -p.x : 2*size-p.x;
+        p.vx = -p.vx;
+    }
+    while( p.y < 0 || p.y > size )
+    {
+        p.y  = p.y < 0 ? -p.y : 2*size-p.y;
+        p.vy = -p.vy;
+    }
+    std::pair<int, int> blockXY = determine_block_normalized(p.x, p.y, num_x_blocks, num_y_blocks);
+    if (oldBX != blockXY.first || oldBY != blockXY.second)
+    {
+        p.by = blockXY.second;
+        p.bx = blockXY.first;
+    }
+}
+
+
 
 //
 //  I/O routines

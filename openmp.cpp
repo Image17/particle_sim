@@ -120,15 +120,13 @@ int main( int argc, char **argv )
             int numblocks = get_numblocks();
             int xblocks = ceil(block_x_size / .01);
             int yblocks = ceil(block_y_size / .01);
-            block_t** blocks = (block_t**)malloc( xblocks * sizeof(block_t));
-            for (int i = 0; i < xblocks; i++)
-            {
-              blocks[i] = (block_t*)malloc( yblocks * sizeof(block_t));
-            }
+
+            
+             std::vector<std::vector<block_t> > blocks = std::vector<std::vector<block_t> > (xblocks, std::vector<block_t>(yblocks));
             
             printf("finished instantiating blocks\n");
             
-            particle_t *my_p = (particle_t*) malloc( curr_block.particles.size() * sizeof(particle_t) );
+            std::vector<particle_t> my_p = std::vector<block_t>(curr_block.particles.size());
             int actualpsize=0;
             for (int i = 0; i < curr_block.particles.size(); i++)
             {
@@ -138,18 +136,18 @@ int main( int argc, char **argv )
              printf("finished instantiating particles, we have %d particles\n",actualpsize);
              
              printf("starting init_blocks\n");
-            init_blocks_xy( curr_block.particles.size(), blocks, my_p, num_x_blocks, num_y_blocks );
+            init_blocks_xy( curr_block.particles.size(), blocks, particles, xblocks, yblocks );
             printf("finished init_blocks\n");
             
             printf("starting update\n");
-            update_blocks_xy( blocks, my_p, actualpsize, num_x_blocks, num_y_blocks );
+            update_blocks_xy( blocks, my_p, actualpsize, xblocks, yblocks );
             printf("ending update\n");
 
             
             printf("beginning on my blocks..\n");
-            for (int i = 0; i < num_x_blocks; i++)
+            for (int i = 0; i < xblocks; i++)
             {
-              for (int j = 0; j < num_y_blocks; j++)
+              for (int j = 0; j < yblocks; j++)
               {
                   if (blocks[i][j].iP.size() > 0){
                     printf("the current block for %d %d has %d particles\n",i,j,blocks[i][j].iP.size());

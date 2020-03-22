@@ -11,7 +11,8 @@
 //
 int main( int argc, char **argv )
 {
-    int navg,nabsavg=0,numthreads;
+    printf("in main\n");
+    int navg,nabsavg=0,numthreads,numblocks;
     double dmin, absmin=1.0,davg,absavg=0.0;
     std::vector<thread_block_t> flattened_thread_blocks;
 
@@ -82,7 +83,8 @@ int main( int argc, char **argv )
             }
         }
         int total_blocks = num_x_blocks * num_y_blocks;
-
+        
+    printf("before parallel\n");
     #pragma omp parallel private(dmin)
     {
 
@@ -101,33 +103,82 @@ int main( int argc, char **argv )
 
 
     // init thread blocks
-    for( int step = 0; step < 1000; step++ )
+    for( int step = 0; step < 1; step++ )
     {
-        //printf("===step %d===\n",step);
+        printf("===step %d===\n",step);
         navg = 0;
         davg = 0.0;
 	    dmin = 1.0;
         //
         //  compute all forces
         //
-
             thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()];
             // compare every particle in curr_block.particles to others
             //printf("for step %d and thread %d we have %d particles \n", step, omp_get_thread_num(), curr_block.particles.size());
-            int interactios =0;
-            //#pragma omp for reduction (+:navg) reduction(+:davg)
-            for (int j = 0; j < curr_block.particles.size(); j++)
+            set_factor( 1 );
+            set_numblocks( 1 );
+            int numblocks = get_numblocks();
+            int xblocks = ceil(block_x_size / .01);
+            int yblocks = ceil(block_y_size / .01);
+            block_t** blocks = (block_t**)malloc( xblocks * sizeof(block_t));
+            for (int i = 0; i < xblocks; i++)
             {
-                particles[curr_block.particles[j]].ax = particles[curr_block.particles[j]].ay = 0;
-                for (int k = 0; k < curr_block.particles.size(); k++)
-                {
-                  interactios += 1;
-                    apply_force( particles[curr_block.particles[j]], particles[curr_block.particles[k]],&dmin,&davg,&navg);
-                }
+              blocks[i] = (block_t*)malloc( yblocks * sizeof(block_t));
             }
+            
+            printf("finished instantiating blocks\n");
+            
+            particle_t *my_p = (particle_t*) malloc( curr_block.particles.size() * sizeof(particle_t) );
+            int actualpsize=0;
+            for (int i = 0; i < curr_block.particles.size(); i++)
+            {
+                my_p[i] = particles[curr_block.particles[i]];
+                actualpsize++;
+            }
+             printf("finished instantiating particles, we have %d particles\n",actualpsize);
+             
+             printf("starting init_blocks\n");
+            init_blocks_xy( curr_block.particles.size(), blocks, my_p, num_x_blocks, num_y_blocks );
+            printf("finished init_blocks\n");
+            
+            printf("starting update\n");
+            update_blocks_xy( blocks, my_p, actualpsize, num_x_blocks, num_y_blocks );
+            printf("ending update\n");
+
+            
+            printf("beginning on my blocks..\n");
+            for (int i = 0; i < num_x_blocks; i++)
+            {
+              for (int j = 0; j < num_y_blocks; j++)
+              {
+                  if (blocks[i][j].iP.size() > 0){
+                    printf("the current block for %d %d has %d particles\n",i,j,blocks[i][j].iP.size());
+                  }
+                for (int y = 0; y < blocks[i][j].iP.size(); y++)
+                {
+                  int px = blocks[i][j].iP[y];
+                  particles[px].ax = particles[px].ay = 0;
+                  for (int k = 0; k < blocks[i][j].blockXY.size(); k++)
+                  {
+                    int bbx = blocks[i][j].blockXY[k].first;
+                    int bby = blocks[i][j].blockXY[k].second;
+                    for (int x = 0; x < blocks[bbx][bby].iP.size(); x++)
+                    {
+                        printf("applying force\"");
+                      int nx = blocks[bbx][bby].iP[x];
+                      apply_force(particles[px], particles[nx], &dmin, &davg, &navg);
+                    }
+                  }
+                }
+              }
+            }
+            printf("out of apply force loop\n");
+            
+
 
           //  printf("for step %d and thread %d we had %d interactions \n", step, omp_get_thread_num(), interactios);
          //#pragma omp for reduction (+:navg) reduction(+:davg)
+         printf("starting right\n");
          for (int ri = 0; ri < curr_block.right_section.size(); ri++)
             {
                 for (int rin = 0; rin < curr_block.right_section_neighbor.size(); rin++)
@@ -144,6 +195,7 @@ int main( int argc, char **argv )
                 }
             }
          //#pragma omp for reduction (+:navg) reduction(+:davg)
+         printf("starting left\n");
          for (int li = 0; li < curr_block.left_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.left_section_neighbor.size(); lin++)
@@ -160,6 +212,7 @@ int main( int argc, char **argv )
                 }
             }
          //#pragma omp for reduction (+:navg) reduction(+:davg)
+         printf("starting top\n");
          for (int li = 0; li < curr_block.top_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.top_section_neighbor.size(); lin++)
@@ -176,6 +229,7 @@ int main( int argc, char **argv )
                 }
             }
          //#pragma omp for reduction (+:navg) reduction(+:davg)
+         printf("starting bottom\n");
          for (int li = 0; li < curr_block.bottom_section.size(); li++)
             {
                 for (int lin = 0; lin < curr_block.bottom_section_neighbor.size(); lin++)
@@ -191,7 +245,7 @@ int main( int argc, char **argv )
                     apply_force( particles[curr_block.bottom_section[li]], particles[curr_block.bottom_left_section_neighbor[lbin]],&dmin,&davg,&navg);
                 }
             }
-
+        printf("out of neighbor loop\n");
         #pragma omp barrier
 
 
@@ -201,6 +255,7 @@ int main( int argc, char **argv )
         #pragma omp for
         for( int i = 0; i < n; i++ )
             move( particles[i] );
+        printf("done move\n");
 
         if( find_option( argc, argv, "-no" ) == -1 )
         {

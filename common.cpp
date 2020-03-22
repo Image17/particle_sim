@@ -78,6 +78,24 @@ void update_blocks( block_t** blocks, particle_t* p, int n )
   }
 }
 
+void update_blocks_xy( block_t** blocks, particle_t* p, int n, int num_x_blocks, int num_y_blocks )
+{
+    printf("iterating over %d x %d\n",num_x_blocks, num_y_blocks);
+
+  for(int i = 0; i< num_x_blocks; i++)
+  {
+    for(int j = 0; j < num_y_blocks; j++)
+    {
+      blocks[i][j].iP.clear();
+    }
+
+}
+  for (int i = 0; i < n; i++)
+  {
+    blocks[p[i].bx][p[i].by].iP.push_back(i);
+  }
+}
+
 std::pair <int,int> determine_block(double x, double y)
 {
   int i = floor(x / (cutoff * factor));
@@ -136,6 +154,50 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
         }
     }
 }
+
+void init_blocks_xy( int n, block_t **blocks, particle_t *p, int num_x_blocks, int num_y_blocks)
+{
+    for (int i = 0; i < num_x_blocks; i++)
+    {
+        for (int j = 0; j < num_y_blocks; j++)
+        {
+           blocks[i][j].blockXY.push_back(std::make_pair(i, j));
+           if (i-1 >= 0)
+           {
+              blocks[i][j].blockXY.push_back(std::make_pair(i-1, j));
+              if (j-1 >= 0)
+              {
+                  blocks[i][j].blockXY.push_back(std::make_pair(i-1, j-1));
+              }
+              if (j+1 < num_y_blocks)
+              {
+                  blocks[i][j].blockXY.push_back(std::make_pair(i-1, j+1));
+              }
+           }
+           if (i+1 < num_x_blocks)
+           {
+              blocks[i][j].blockXY.push_back(std::make_pair(i+1, j));
+              if (j-1 >= 0)
+              {
+                  blocks[i][j].blockXY.push_back(std::make_pair(i+1, j-1));
+              }
+              if (j+1 < num_y_blocks)
+              {
+                  blocks[i][j].blockXY.push_back(std::make_pair(i+1, j+1));
+              }
+           }
+           if (j-1 >= 0)
+           {
+              blocks[i][j].blockXY.push_back(std::make_pair(i, j-1));
+           }
+           if (j+1 < num_y_blocks)
+           {
+              blocks[i][j].blockXY.push_back(std::make_pair(i, j+1));
+           }
+        }
+    }
+}
+
 
 std::vector<std::vector<thread_block_t> > clear_out_thread_blocks(std::vector<std::vector<thread_block_t> > thread_blocks, int num_x_blocks, int num_y_blocks)
 {

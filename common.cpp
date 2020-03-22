@@ -91,10 +91,19 @@ void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<in
     }
 
 }
+
+    printf("diag..\n");
+    printf("block size %d\n",blocks.size());
+    printf("blocks[0] size %d\n",blocks[0].size());
+    block_t myb = blocks[0][0];
+    printf("0,0 block particle size %d\n",blocks[0][0].iP.size());
+    printf("done diag\n");
     printf("starting load over %d particles...\n",n);
   for (int i = 0; i < n; i++)
   {
+      printf("would load into %d %d\n",particles[p[i]].bx,particles[p[i]].by);
     blocks[particles[p[i]].bx][particles[p[i]].by].iP.push_back(i);
+    printf("loaded %d %d\n",particles[p[i]].bx,particles[p[i]].by);
   }
 }
 
@@ -398,6 +407,20 @@ void init_particles( int n, particle_t *p)
     }
 
     free( shuffle );
+}
+
+void assign_particles_to_blocks(std::vector<int> block_particles, int n, particle_t *p)
+{
+    for (int i = 0; i < block_particles.size(); i++)
+    {
+        p[block_particles[i]].x;
+        p[block_particles[i]].y;
+        
+        std::pair <int,int> blockXY = determine_block(p[block_particles[i]].x, p[block_particles[i]].y);
+        p[block_particles[i]].bx = blockXY.first;
+        p[block_particles[i]].by = blockXY.second;
+    }
+    
 }
 
 //

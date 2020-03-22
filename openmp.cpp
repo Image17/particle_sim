@@ -125,7 +125,7 @@ int main( int argc, char **argv )
             int yblocks = ceil(block_y_size / .01);
 
                      
-             std::vector<std::vector<block_t> > blocks              = std::vector<std::vector<block_t> > (xblocks, std::vector<block_t>(yblocks));
+             std::vector<std::vector<block_t> > blocks = std::vector<std::vector<block_t> > (xblocks, std::vector<block_t>(yblocks));
             
             printf("finished instantiating blocks\n");
             
@@ -133,6 +133,10 @@ int main( int argc, char **argv )
              printf("starting init_blocks\n");
             init_blocks_xy( curr_block.particles.size(), blocks, particles, xblocks, yblocks );
             printf("finished init_blocks\n");
+            
+            printf("beginning assignment\n");
+            assign_particles_to_blocks(curr_block.particles, curr_block.particles.size(), particles);
+            printf("ending assignment\n");
             
             printf("starting update\n");
             update_blocks_xy( blocks, curr_block.particles, curr_block.particles.size(), xblocks, yblocks, particles );

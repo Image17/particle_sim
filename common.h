@@ -85,6 +85,8 @@ std::vector<std::vector<thread_block_t> > load_particles_into_thread_blocks(int 
 std::vector<std::vector<thread_block_t> > clear_out_thread_blocks(std::vector<std::vector<thread_block_t> > thread_blocks, int num_x_blocks, int num_y_blocks);
 double get_size();
 
+void assign_particles_to_blocks(std::vector<int> block_particles, int n, particle_t *p);
+
 //
 //  I/O routines
 //

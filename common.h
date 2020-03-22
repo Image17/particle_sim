@@ -74,7 +74,7 @@ void set_size( int n );
 void init_blocks( int n, block_t **blocks, particle_t *p);
 void init_blocks_xy( int n, std::vector<std::vector<block_t> > blocks, particle_t *p, int num_x_blocks, int num_y_blocks);
 void update_blocks( block_t** blocks, particle_t* particles, int n );
-void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<particle_t> p, int n, int num_x_blocks, int num_y_blocks );
+void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<int> p, int n, int num_x_blocks, int num_y_blocks, particle_t* particles );
 void init_particles( int n, particle_t *p);
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
 void move( particle_t &p );

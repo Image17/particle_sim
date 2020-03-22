@@ -78,7 +78,7 @@ void update_blocks( block_t** blocks, particle_t* p, int n )
   }
 }
 
-void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<particle_t> p, int n, int num_x_blocks, int num_y_blocks )
+void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<int> p, int n, int num_x_blocks, int num_y_blocks, particle_t* particles )
 {
     printf("iterating over %d x %d\n",num_x_blocks, num_y_blocks);
 
@@ -94,7 +94,7 @@ void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<pa
     printf("starting load over %d particles...\n",n);
   for (int i = 0; i < n; i++)
   {
-    blocks[p[i].bx][p[i].by].iP.push_back(i);
+    blocks[particles[p[i]].bx][particles[p[i]].by].iP.push_back(i);
   }
 }
 

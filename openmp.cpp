@@ -115,32 +115,27 @@ int main( int argc, char **argv )
             thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()];
             // compare every particle in curr_block.particles to others
             //printf("for step %d and thread %d we have %d particles \n", step, omp_get_thread_num(), curr_block.particles.size());
+            //TODO: delete below 
             set_factor( 1 );
             set_numblocks( 1 );
             int numblocks = get_numblocks();
+            
+            // this can be done earlier and is constant
             int xblocks = ceil(block_x_size / .01);
             int yblocks = ceil(block_y_size / .01);
 
-            
-             std::vector<std::vector<block_t> > blocks = std::vector<std::vector<block_t> > (xblocks, std::vector<block_t>(yblocks));
+                     
+             std::vector<std::vector<block_t> > blocks              = std::vector<std::vector<block_t> > (xblocks, std::vector<block_t>(yblocks));
             
             printf("finished instantiating blocks\n");
             
-            std::vector<particle_t> my_p = std::vector<particle_t>(curr_block.particles.size());
-            int actualpsize=0;
-            for (int i = 0; i < curr_block.particles.size(); i++)
-            {
-                my_p[i] = particles[curr_block.particles[i]];
-                actualpsize++;
-            }
-             printf("finished instantiating particles, we have %d particles\n",actualpsize);
              
              printf("starting init_blocks\n");
             init_blocks_xy( curr_block.particles.size(), blocks, particles, xblocks, yblocks );
             printf("finished init_blocks\n");
             
             printf("starting update\n");
-            update_blocks_xy( blocks, my_p, actualpsize, xblocks, yblocks );
+            update_blocks_xy( blocks, curr_block.particles, curr_block.particles.size(), xblocks, yblocks, particles );
             printf("ending update\n");
 
             

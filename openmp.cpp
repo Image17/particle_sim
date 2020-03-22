@@ -27,13 +27,13 @@ int main( int argc, char **argv )
 
     int n = read_int( argc, argv, "-n", 1000 );
     int blockfactor = read_int( argc, argv, "-f", 1 );
-
+    //int n_threads = read_int(argc, argv, "-p", 2);
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
 
     FILE *fsave = savename ? fopen( savename, "w" ) : NULL;
     FILE *fsum = sumname ? fopen ( sumname, "a" ) : NULL;
-
+    //omp_set_num_threads(n_threads);
     particle_t *particles = (particle_t*) malloc( n * sizeof(particle_t) );
     set_size( n );
     set_factor( blockfactor );
@@ -46,7 +46,7 @@ int main( int argc, char **argv )
     }
     init_blocks( n, blocks, particles );
     init_particles( n, particles );
-
+printf("done allocs\n");
     //
     //  simulate a number of time steps
     //
@@ -71,8 +71,28 @@ int main( int argc, char **argv )
         //     }
 				//         apply_force( particles[i], particles[j],&dmin,&davg,&navg);
         // }
-
-        for (int i = 0; i < numblocks; i++)
+        //printf("im here\n");
+        #pragma omp for
+        for (int i = 0; i <n; i++)
+        {
+            particles[i].ax = particles[i].ay = 0;
+            block_t cblock = blocks[particles[i].bx][particles[i].by];
+            for (int j = 0; j < cblock.blockXY.size(); j++)
+            {
+                int bbx = cblock.blockXY[j].first;
+                int bby = cblock.blockXY[j].second;
+                for (int k = 0; k < blocks[bbx][bby].iP.size(); k++)
+                {
+                    int nx = blocks[bbx][bby].iP[k];
+                    apply_force(particles[i], particles[nx], &dmin, &davg, &navg);
+                }
+            }
+        }
+       // printf("and im done\n");
+        
+        
+        
+/*         for (int i = 0; i < numblocks; i++)
         {
           for (int j = 0; j < numblocks; j++)
           {
@@ -94,8 +114,8 @@ int main( int argc, char **argv )
               }
             }
           }
-        }
- #pragma omp barrier
+        } */
+        #pragma omp barrier
         //
         //  move particles
         //
@@ -103,6 +123,7 @@ int main( int argc, char **argv )
         for( int i = 0; i < n; i++ )
             move( particles[i] );
 
+        #pragma omp single
         update_blocks ( blocks, particles, n );
 
         if( find_option( argc, argv, "-no" ) == -1 )
@@ -129,7 +150,7 @@ int main( int argc, char **argv )
 }
     simulation_time = read_timer( ) - simulation_time;
 
-    printf( "n = %d, simulation time = %g seconds", n, simulation_time);
+    printf("n = %d, n_threads = %d, simulation time = %g seconds", n, omp_get_num_threads(), simulation_time );
 
     if( find_option( argc, argv, "-no" ) == -1 )
     {

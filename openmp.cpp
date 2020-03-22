@@ -126,7 +126,7 @@ int main( int argc, char **argv )
             
             printf("finished instantiating blocks\n");
             
-            std::vector<particle_t> my_p = std::vector<block_t>(curr_block.particles.size());
+            std::vector<particle_t> my_p = std::vector<particle_t>(curr_block.particles.size());
             int actualpsize=0;
             for (int i = 0; i < curr_block.particles.size(); i++)
             {

@@ -78,7 +78,7 @@ void update_blocks( block_t** blocks, particle_t* p, int n )
   }
 }
 
-void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<int> p, int n, int num_x_blocks, int num_y_blocks, particle_t* particles )
+std::vector<std::vector<block_t> > update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<int> p, int n, int num_x_blocks, int num_y_blocks, particle_t* particles )
 {
     printf("iterating over %d x %d\n",num_x_blocks, num_y_blocks);
 
@@ -89,7 +89,6 @@ void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<in
        // printf("clearing..\n");
       blocks[i][j].iP.clear();
     }
-
 }
 
     printf("diag..\n");
@@ -105,6 +104,7 @@ void update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<in
     blocks[particles[p[i]].bx][particles[p[i]].by].iP.push_back(i);
     printf("loaded %d %d\n",particles[p[i]].bx,particles[p[i]].by);
   }
+  return blocks;
 }
 
 std::pair <int,int> determine_block(double x, double y)
@@ -166,7 +166,7 @@ void init_blocks( int n, block_t **blocks, particle_t *p)
     }
 }
 
-void init_blocks_xy( int n, std::vector<std::vector<block_t> > blocks, particle_t *p, int num_x_blocks, int num_y_blocks)
+std::vector<std::vector<block_t> > init_blocks_xy( int n, std::vector<std::vector<block_t> > blocks, particle_t *p, int num_x_blocks, int num_y_blocks)
 {
     for (int i = 0; i < num_x_blocks; i++)
     {
@@ -207,6 +207,7 @@ void init_blocks_xy( int n, std::vector<std::vector<block_t> > blocks, particle_
            }
         }
     }
+    return blocks;
 }
 
 

@@ -131,7 +131,7 @@ int main( int argc, char **argv )
             
              
              printf("starting init_blocks\n");
-            init_blocks_xy( curr_block.particles.size(), blocks, particles, xblocks, yblocks );
+            blocks = init_blocks_xy( curr_block.particles.size(), blocks, particles, xblocks, yblocks );
             printf("finished init_blocks\n");
             
             printf("beginning assignment\n");
@@ -139,7 +139,7 @@ int main( int argc, char **argv )
             printf("ending assignment\n");
             
             printf("starting update\n");
-            update_blocks_xy( blocks, curr_block.particles, curr_block.particles.size(), xblocks, yblocks, particles );
+            blocks = update_blocks_xy( blocks, curr_block.particles, curr_block.particles.size(), xblocks, yblocks, particles );
             printf("ending update\n");
 
             
@@ -161,7 +161,7 @@ int main( int argc, char **argv )
                     int bby = blocks[i][j].blockXY[k].second;
                     for (int x = 0; x < blocks[bbx][bby].iP.size(); x++)
                     {
-                        printf("applying force\"");
+                        printf("applying force\n");
                       int nx = blocks[bbx][bby].iP[x];
                       apply_force(particles[px], particles[nx], &dmin, &davg, &navg);
                     }

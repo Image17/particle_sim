@@ -80,7 +80,6 @@ void update_blocks( block_t** blocks, particle_t* p, int n )
 
 std::vector<std::vector<block_t> > update_blocks_xy( std::vector<std::vector<block_t> > blocks, std::vector<int> p, int n, int num_x_blocks, int num_y_blocks, particle_t* particles )
 {
-    printf("iterating over %d x %d\n",num_x_blocks, num_y_blocks);
 
   for(int i = 0; i< num_x_blocks; i++)
   {
@@ -91,18 +90,11 @@ std::vector<std::vector<block_t> > update_blocks_xy( std::vector<std::vector<blo
     }
 }
 
-    printf("diag..\n");
-    printf("block size %d\n",blocks.size());
-    printf("blocks[0] size %d\n",blocks[0].size());
-    block_t myb = blocks[0][0];
-    printf("0,0 block particle size %d\n",blocks[0][0].iP.size());
-    printf("done diag\n");
-    printf("starting load over %d particles...\n",n);
   for (int i = 0; i < n; i++)
   {
-      printf("would load into %d %d\n",particles[p[i]].bx,particles[p[i]].by);
+      //printf("would load into %d %d\n",particles[p[i]].bx,particles[p[i]].by);
     blocks[particles[p[i]].bx][particles[p[i]].by].iP.push_back(i);
-    printf("loaded %d %d\n",particles[p[i]].bx,particles[p[i]].by);
+    //printf("loaded %d %d\n",particles[p[i]].bx,particles[p[i]].by);
   }
   return blocks;
 }
@@ -452,6 +444,7 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
     double coef = ( 1 - cutoff / r ) / r2 / mass;
     particle.ax += coef * dx;
     particle.ay += coef * dy;
+    //printf("force fully applied..\n");
 }
 
 //

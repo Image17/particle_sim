@@ -103,7 +103,7 @@ int main( int argc, char **argv )
 
 
     // init thread blocks
-    for( int step = 0; step < 1; step++ )
+    for( int step = 0; step < 1000; step++ )
     {
         printf("===step %d===\n",step);
         navg = 0;
@@ -112,7 +112,7 @@ int main( int argc, char **argv )
         //
         //  compute all forces
         //
-            thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()];
+            thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()]; 
             // compare every particle in curr_block.particles to others
             //printf("for step %d and thread %d we have %d particles \n", step, omp_get_thread_num(), curr_block.particles.size());
             //TODO: delete below 
@@ -149,7 +149,7 @@ int main( int argc, char **argv )
               for (int j = 0; j < yblocks; j++)
               {
                   if (blocks[i][j].iP.size() > 0){
-                    printf("the current block for %d %d has %d particles\n",i,j,blocks[i][j].iP.size());
+                    //printf("the current block for %d %d has %d particles\n",i,j,blocks[i][j].iP.size());
                   }
                 for (int y = 0; y < blocks[i][j].iP.size(); y++)
                 {
@@ -161,7 +161,7 @@ int main( int argc, char **argv )
                     int bby = blocks[i][j].blockXY[k].second;
                     for (int x = 0; x < blocks[bbx][bby].iP.size(); x++)
                     {
-                        printf("applying force\n");
+                        //printf("applying force\n");
                       int nx = blocks[bbx][bby].iP[x];
                       apply_force(particles[px], particles[nx], &dmin, &davg, &navg);
                     }

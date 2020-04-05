@@ -56,18 +56,7 @@ int main( int argc, char **argv )
 	navg = 0;
         davg = 0.0;
 	dmin = 1.0;
-        //
-        //  compute forces
-        //
-        // for( int i = 0; i < n; i++ )
-        // {
-        //     //particles[i].ax = particles[i].ay = 0;
-        //     for (int j = 0; j < n; j++ )
-        //     {
-        //
-        //     }
-				//         apply_force( particles[i], particles[j],&dmin,&davg,&navg);
-        // }
+
 
         for (int i = 0; i < numblocks; i++)
         {
@@ -75,8 +64,6 @@ int main( int argc, char **argv )
           {
             for (int y = 0; y < blocks[i][j].iP.size(); y++)
             {
-              int www = blocks[i][j].iP.size();
-              //printf("Block: %d %d PCount=%d \n",i,j,www);
               int px = blocks[i][j].iP[y];
               particles[px].ax = particles[px].ay = 0;
               for (int k = 0; k < blocks[i][j].blockXY.size(); k++)

@@ -93,7 +93,7 @@ std::vector<std::vector<block_t> > update_blocks_xy( std::vector<std::vector<blo
   for (int i = 0; i < n; i++)
   {
       //printf("would load into %d %d\n",particles[p[i]].bx,particles[p[i]].by);
-    blocks[particles[p[i]].bx][particles[p[i]].by].iP.push_back(i);
+    blocks[particles[p[i]].bx][particles[p[i]].by].iP.push_back(p[i]);
     //printf("loaded %d %d\n",particles[p[i]].bx,particles[p[i]].by);
   }
   return blocks;
@@ -115,7 +115,7 @@ std::pair <int,int> determine_block_normalized(double x, double y, int num_x_blo
 
 std::pair <int,int> determine_thread_block(double x, double y, double block_x_size, double block_y_size)
 {
-    
+
    int i = floor(x / block_x_size);
    int j = floor(y / block_y_size);
    //printf("got coords %d , %d \n",i,j);
@@ -250,23 +250,23 @@ std::vector<std::vector<thread_block_t> >  load_particles_into_thread_blocks(int
         //printf("checking on stuff.. for %d %d\n",block_coordinates.first,block_coordinates.second);
         thread_block_t ttt = thread_blocks[block_coordinates.first][block_coordinates.second];
         //printf("spill the ttt\n");
-        
+
         // add particle to master list
         thread_blocks[block_coordinates.first][block_coordinates.second].particles.push_back(i);
-        
+
         // determine what border section particle belongs to
         double lower_x_bound = block_coordinates.first * block_x_size;
         double upper_x_bound = (block_coordinates.first + 1) * block_x_size;
-        
+
         double lower_y_bound = block_coordinates.second * block_y_size;
         double upper_y_bound = (block_coordinates.second + 1) * block_y_size;
-        
+
         bool passed_lower_x_bound = (p.x - cutoff) < lower_x_bound;
         bool passed_upper_x_bound = (p.x + cutoff) > upper_x_bound;
-                
+
         bool passed_lower_y_bound = (p.y - cutoff) < lower_y_bound;
         bool passed_upper_y_bound = (p.y + cutoff) > upper_y_bound;
-        
+
         // top right check
         if (passed_upper_x_bound && passed_upper_y_bound)
         {
@@ -274,19 +274,19 @@ std::vector<std::vector<thread_block_t> >  load_particles_into_thread_blocks(int
         } else if (passed_upper_x_bound && passed_lower_y_bound)
         {
             thread_blocks[block_coordinates.first][block_coordinates.second].bottom_right_section.push_back(i);
-        } else if (passed_lower_x_bound && passed_upper_y_bound) 
+        } else if (passed_lower_x_bound && passed_upper_y_bound)
         {
             thread_blocks[block_coordinates.first][block_coordinates.second].top_left_section.push_back(i);
-        } else if (passed_lower_x_bound && passed_lower_y_bound) 
+        } else if (passed_lower_x_bound && passed_lower_y_bound)
         {
             thread_blocks[block_coordinates.first][block_coordinates.second].bottom_left_section.push_back(i);
         }
-        
-        if (passed_lower_x_bound) 
+
+        if (passed_lower_x_bound)
         {
             thread_blocks[block_coordinates.first][block_coordinates.second].left_section.push_back(i);
         }
-        if (passed_upper_x_bound) 
+        if (passed_upper_x_bound)
         {
             thread_blocks[block_coordinates.first][block_coordinates.second].right_section.push_back(i);
         }
@@ -299,7 +299,7 @@ std::vector<std::vector<thread_block_t> >  load_particles_into_thread_blocks(int
             thread_blocks[block_coordinates.first][block_coordinates.second].top_section.push_back(i);
         }
     }
-    
+
     return thread_blocks;
 }
 
@@ -311,8 +311,8 @@ std::vector<std::vector<thread_block_t> >  init_thread_blocks(int n, std::vector
         {
            //TODO we added ourselves as a neighbor, need to account for that
            //blocks[i][j].blockXY.push_back(std::make_pair(i, j));
-           
-           
+
+
            // to our left
            if (i-1 >= 0)
            {
@@ -343,7 +343,7 @@ std::vector<std::vector<thread_block_t> >  init_thread_blocks(int n, std::vector
                   thread_blocks[i][j].top_right_section_neighbor = thread_blocks[i+1][j+1].bottom_left_section;
               }
            }
-           // below 
+           // below
            if (j-1 >= 0)
            {
               thread_blocks[i][j].bottom_section_neighbor = thread_blocks[i][j-1].top_section;
@@ -353,8 +353,8 @@ std::vector<std::vector<thread_block_t> >  init_thread_blocks(int n, std::vector
            {
               thread_blocks[i][j].top_section_neighbor = thread_blocks[i][j+1].bottom_section;
            }
-            
-            
+
+
         }
     }
     return thread_blocks;
@@ -417,7 +417,6 @@ void assign_particles_to_blocks(std::vector<int> block_particles, int n, particl
         p[block_particles[i]].bx = blockXY.first;
         p[block_particles[i]].by = blockXY.second;
     }
-    
 }
 
 //
@@ -431,13 +430,13 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
     double r2 = dx * dx + dy * dy;
     if( r2 > cutoff*cutoff )
         return;
-	if (r2 != 0)
-        {
-	   if (r2/(cutoff*cutoff) < *dmin * (*dmin))
-	      *dmin = sqrt(r2)/cutoff;
-           (*davg) += sqrt(r2)/cutoff;
-           (*navg) ++;
-        }
+  	if (r2 != 0)
+    {
+        if (r2/(cutoff*cutoff) < *dmin * (*dmin))
+          *dmin = sqrt(r2)/cutoff;
+        (*davg) += sqrt(r2)/cutoff;
+        (*navg) ++;
+    }
 
     r2 = fmax( r2, min_r*min_r );
     double r = sqrt( r2 );

@@ -82,54 +82,36 @@ int main( int argc, char **argv )
             }
         }
         int total_blocks = num_x_blocks * num_y_blocks;
-        
+
     #pragma omp parallel private(dmin)
     {
-
-
-
-        numthreads = omp_get_num_threads();
-
-        // get number of thread blocks base don numthreads
-        // 1:1x1
-        // 2:2* split in half
-        // 4:2x2
-        // 8:8* 2x4
-        // 16:4x4
-
-
-
-
-    // init thread blocks
     for( int step = 0; step < 1000; step++ )
     {
         navg = 0;
         davg = 0.0;
-	    dmin = 1.0;
+	      dmin = 1.0;
         //
         //  compute all forces
         //
-            thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()]; 
+            thread_block_t curr_block = flattened_thread_blocks[omp_get_thread_num()];
             // compare every particle in curr_block.particles to others
             //printf("for step %d and thread %d we have %d particles \n", step, omp_get_thread_num(), curr_block.particles.size());
-            //TODO: delete below 
+            //TODO: delete below
             set_factor( 1 );
             set_numblocks( 1 );
             int numblocks = get_numblocks();
-            
+
             // this can be done earlier and is constant
             int xblocks = ceil(block_x_size / .01);
             int yblocks = ceil(block_y_size / .01);
 
-                     
-             std::vector<std::vector<block_t> > blocks = std::vector<std::vector<block_t> > (xblocks, std::vector<block_t>(yblocks));
+            std::vector<std::vector<block_t> > blocks = std::vector<std::vector<block_t> > (xblocks, std::vector<block_t>(yblocks));
 
             blocks = init_blocks_xy( curr_block.particles.size(), blocks, particles, xblocks, yblocks );
 
             assign_particles_to_blocks(curr_block.particles, curr_block.particles.size(), particles, xblocks, yblocks);
 
             blocks = update_blocks_xy( blocks, curr_block.particles, curr_block.particles.size(), xblocks, yblocks, particles );
-
             for (int i = 0; i < xblocks; i++)
             {
               for (int j = 0; j < yblocks; j++)
@@ -155,7 +137,7 @@ int main( int argc, char **argv )
                 }
               }
             }
-            
+
 
 
           //  printf("for step %d and thread %d we had %d interactions \n", step, omp_get_thread_num(), interactios);
@@ -223,7 +205,8 @@ int main( int argc, char **argv )
                     apply_force( particles[curr_block.bottom_section[li]], particles[curr_block.bottom_left_section_neighbor[lbin]],&dmin,&davg,&navg);
                 }
             }
-        #pragma omp barrier
+
+        //#pragma omp barrierdmin
 
 
         //
